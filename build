@@ -1,1 +1,1 @@
-g++ src/*.cpp include/glad.c -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -Iinclude --std=c++11 -g -o dig 
+g++ src/*.cpp include/glad.c -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -isystem include --std=c++11 -g -o dig -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual -Werror

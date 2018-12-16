@@ -1,4 +1,5 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wpedantic"
 
 union Matrix4x4 {
   float seq[16];
@@ -25,3 +26,11 @@ union Quaternion {
   float v[4];
 };
 
+struct Rectangle {
+  float left;
+  float right;
+  float bottom;
+  float top;
+};
+
+#pragma GCC diagnostic ignored "-Wpedantic"

@@ -6,11 +6,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include "defs.h"
 #include "dig_math.h"
 
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
+
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -47,11 +51,11 @@ GLuint compileShaderFile(const char* path, const GLenum shaderType) {
   int success;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   if (success == GL_FALSE) {
-    int len;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-    char infoLog[len];
+    char* infoLog = (char*)malloc(len * sizeof(char));
     glGetShaderInfoLog(shader, len, NULL, infoLog);
     printf("Shader compilation error. %s.\n%s\n", path, infoLog);
+    free(infoLog);
     return 0;
   }
 
@@ -81,13 +85,41 @@ GLuint compileShader(const char* vertexPath, const char* fragmentPath) {
   if (success == GL_FALSE) {
     int len;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-    char infoLog[len];
+    char* infoLog = (char*)malloc(len * sizeof(char));
     glGetProgramInfoLog(shader, len, NULL, infoLog);
     printf("Shader linker error.\n%s\n", infoLog);
+    free(infoLog);
     return 0;
   }
 
   return shader;
+}
+
+GLuint load_texture(const char* filepath) {
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  // set the texture wrapping/filtering options (on the currently bound texture object)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  // load and generate the texture
+  int width, height, nrChannels;
+  unsigned char *data = stbi_load(filepath, &width, &height, &nrChannels, 0);
+  if (!data) {
+    printf("Failed to load texture.");
+    return 0;
+  }
+  GLenum format;
+  if (nrChannels == 3) {
+    format = GL_RGB;
+  } else {
+    format = GL_RGBA;
+  }
+  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+  stbi_image_free(data);
+  return texture;
 }
 
 GLuint genBuffers() {
@@ -120,62 +152,89 @@ GLuint genBuffers() {
   return vao;
 }
 
-GLuint genCubeBuffer() {
-  GLuint vao, vbo;
+
+void texture_indices_to_texture_coords(int textures[6], Rectangle* texture_coords) {
+  // NOTE(nathan): Texture map size is hardcoded for now, will need to change.
+  float map_width = 16.0 * 16.0;
+  float unit = 16.0 / map_width;
+  for(int i = 0; i < 6; i++) {
+    int index = textures[i];
+    float y = ((index / 16) * 16) / map_width;
+    float x = ((index % 16) * 16) / map_width;
+    texture_coords[i].left = x;
+    // NOTE(nathan): Is this right? It was upside down. Who knows??
+    texture_coords[i].bottom = y + unit;
+    texture_coords[i].top = y;
+    texture_coords[i].right = x + unit;
+  }
+}
+
+// Textures go near, far, left, right, bottom, top
+GLuint genTexturedCubeBuffer(int textures[6]) {
+  Rectangle texture_coords[6];
+  texture_indices_to_texture_coords(textures, texture_coords);
+
+  GLuint vao, vbo, ebo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
+  glGenBuffers(1, &ebo);
 
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
   float vertices[] = {
-    -0.5f, -0.5f, -0.5f, 0.6, 0.3, 0.15,
-     0.5f, -0.5f, -0.5f, 0.6, 0.3, 0.15,
-     0.5f,  0.5f, -0.5f, 0.6, 0.3, 0.15,
-     0.5f,  0.5f, -0.5f, 0.6, 0.3, 0.15,
-    -0.5f,  0.5f, -0.5f, 0.6, 0.3, 0.15,
-    -0.5f, -0.5f, -0.5f, 0.6, 0.3, 0.15,
+    -0.5f, -0.5f, -0.5f, texture_coords[0].left, texture_coords[0].bottom,
+     0.5f, -0.5f, -0.5f, texture_coords[0].right, texture_coords[0].bottom,
+     0.5f,  0.5f, -0.5f, texture_coords[0].right, texture_coords[0].top,
+    -0.5f,  0.5f, -0.5f, texture_coords[0].left, texture_coords[0].top,    
 
-    -0.5f, -0.5f,  0.5f, 0.6, 0.3, 0.15,
-     0.5f, -0.5f,  0.5f, 0.6, 0.3, 0.15,
-     0.5f,  0.5f,  0.5f, 0.6, 0.3, 0.15,
-     0.5f,  0.5f,  0.5f, 0.6, 0.3, 0.15,
-    -0.5f,  0.5f,  0.5f, 0.6, 0.3, 0.15,
-    -0.5f, -0.5f,  0.5f, 0.6, 0.3, 0.15,
+    -0.5f, -0.5f,  0.5f, texture_coords[1].left, texture_coords[1].bottom,
+     0.5f, -0.5f,  0.5f, texture_coords[1].right, texture_coords[1].bottom,
+     0.5f,  0.5f,  0.5f, texture_coords[1].right, texture_coords[1].top,
+    -0.5f,  0.5f,  0.5f, texture_coords[1].left, texture_coords[1].top,
 
-    -0.5f,  0.5f,  0.5f, 0.6, 0.3, 0.15,
-    -0.5f,  0.5f, -0.5f, 0.6, 0.3, 0.15,
-    -0.5f, -0.5f, -0.5f, 0.6, 0.3, 0.15,
-    -0.5f, -0.5f, -0.5f, 0.6, 0.3, 0.15,
-    -0.5f, -0.5f,  0.5f, 0.6, 0.3, 0.15,
-    -0.5f,  0.5f,  0.5f, 0.6, 0.3, 0.15,
+    -0.5f,  0.5f,  0.5f, texture_coords[2].right, texture_coords[2].top,    
+    -0.5f,  0.5f, -0.5f, texture_coords[2].left, texture_coords[2].top,
+    -0.5f, -0.5f, -0.5f, texture_coords[2].left, texture_coords[2].bottom,
+    -0.5f, -0.5f,  0.5f, texture_coords[2].right, texture_coords[2].bottom,
 
-     0.5f,  0.5f,  0.5f, 0.6, 0.3, 0.15,
-     0.5f,  0.5f, -0.5f, 0.6, 0.3, 0.15,
-     0.5f, -0.5f, -0.5f, 0.6, 0.3, 0.15,
-     0.5f, -0.5f, -0.5f, 0.6, 0.3, 0.15,
-     0.5f, -0.5f,  0.5f, 0.6, 0.3, 0.15,
-     0.5f,  0.5f,  0.5f, 0.6, 0.3, 0.15,
+     0.5f,  0.5f,  0.5f, texture_coords[3].right, texture_coords[3].top,
+     0.5f,  0.5f, -0.5f, texture_coords[3].left, texture_coords[3].top,
+     0.5f, -0.5f, -0.5f, texture_coords[3].left, texture_coords[3].bottom,
+     0.5f, -0.5f,  0.5f, texture_coords[3].right, texture_coords[3].bottom,    
 
-    -0.5f, -0.5f, -0.5f, 0.3, 0.15, 0.0,
-     0.5f, -0.5f, -0.5f, 0.3, 0.15, 0.0,
-     0.5f, -0.5f,  0.5f, 0.3, 0.15, 0.0,
-     0.5f, -0.5f,  0.5f, 0.3, 0.15, 0.0,
-    -0.5f, -0.5f,  0.5f, 0.3, 0.15, 0.0,
-    -0.5f, -0.5f, -0.5f, 0.3, 0.15, 0.0,
+     0.5f, -0.5f, -0.5f, texture_coords[4].left, texture_coords[4].bottom,
+     0.5f, -0.5f,  0.5f, texture_coords[4].right, texture_coords[4].bottom,
+    -0.5f, -0.5f,  0.5f, texture_coords[4].right, texture_coords[4].top,
+    -0.5f, -0.5f, -0.5f, texture_coords[4].left, texture_coords[4].top,    
 
-    -0.5f,  0.5f, -0.5f, 0.0, 0.5, 0.0,
-     0.5f,  0.5f, -0.5f, 0.0, 0.5, 0.0,
-     0.5f,  0.5f,  0.5f, 0.0, 0.5, 0.0,
-     0.5f,  0.5f,  0.5f, 0.0, 0.5, 0.0,
-    -0.5f,  0.5f,  0.5f, 0.0, 0.5, 0.0,
-    -0.5f,  0.5f, -0.5f, 0.0, 0.5, 0.0,
+     0.5f,  0.5f, -0.5f, texture_coords[5].left, texture_coords[5].bottom,
+     0.5f,  0.5f,  0.5f, texture_coords[5].right, texture_coords[5].bottom,
+    -0.5f,  0.5f,  0.5f, texture_coords[5].right, texture_coords[5].top,
+    -0.5f,  0.5f, -0.5f, texture_coords[5].left, texture_coords[5].top,    
+  };
+
+  unsigned int indices[] = {
+    0, 1, 2,
+    3, 2, 0,
+    4, 5, 6,
+    7, 6, 4,
+    8, 9, 10,
+    11, 10, 8,
+    12, 13, 14,
+    15, 14, 12,
+    16, 17, 18,
+    19, 18, 16,
+    20, 21, 22,
+    23, 22, 20
   };
 
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
   return vao;
@@ -215,7 +274,10 @@ int main(void) {
   }
 
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  GLuint vao = genCubeBuffer();
+  // Textures go near, far, left, right, bottom, top
+  GLuint texture = load_texture("resources/terrain.png");
+  int textures[] = {3, 3, 3, 3, 2, 0};
+  GLuint vao = genTexturedCubeBuffer(textures);
 
   struct timespec old_time, new_time;
   clock_gettime(CLOCK_MONOTONIC_RAW, &old_time);
@@ -250,6 +312,8 @@ int main(void) {
     Matrix4x4 projection = perspective_projection(0.1, 100, 45.0, ratio);
 
     glUseProgram(shaderProgram);
+    glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
+    glBindTexture(GL_TEXTURE_2D, texture);
     GLuint transformLocation = glGetUniformLocation(shaderProgram, "view");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
     transformLocation = glGetUniformLocation(shaderProgram, "projection");
@@ -270,7 +334,7 @@ int main(void) {
         model *= translate(v3(x, y, z));
         transformLocation = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
       }
     }
 
