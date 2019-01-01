@@ -11,6 +11,7 @@
 
 #include "defs.h"
 #include "dig_math.h"
+#include "models.h"
 
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
@@ -153,203 +154,7 @@ GLuint genBuffers() {
 }
 
 
-void texture_indices_to_texture_coords(int *textures, Rectangle* texture_coords, int num_textures) {
-  // NOTE(nathan): Texture map size is hardcoded for now, will need to change.
-  float map_width = 16.0 * 16.0;
-  float unit = 16.0 / map_width;
-  for(int i = 0; i < num_textures; i++) {
-    int index = textures[i];
-    float y = ((index / 16) * 16) / map_width;
-    float x = ((index % 16) * 16) / map_width;
-    texture_coords[i].left = x;
-    // NOTE(nathan): Is this right? It was upside down. Who knows??
-    texture_coords[i].bottom = y + unit;
-    texture_coords[i].top = y;
-    texture_coords[i].right = x + unit;
-  }
-}
-
-// Textures go near, far, left, right, bottom, top
-GLuint genTexturedCubeBuffer(int textures[6]) {
-  Rectangle texture_coords[6];
-  texture_indices_to_texture_coords(textures, texture_coords, 6);
-
-  GLuint vao, vbo, ebo;
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &vbo);
-  glGenBuffers(1, &ebo);
-
-  glBindVertexArray(vao);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-  float vertices[] = {
-    -0.5f, -0.5f,  0.5f, texture_coords[0].left, texture_coords[0].bottom,
-     0.5f, -0.5f,  0.5f, texture_coords[0].right, texture_coords[0].bottom,
-     0.5f,  0.5f,  0.5f, texture_coords[0].right, texture_coords[0].top,
-    -0.5f,  0.5f,  0.5f, texture_coords[0].left, texture_coords[0].top,
-
-    -0.5f, -0.5f, -0.5f, texture_coords[1].left, texture_coords[1].bottom,
-     0.5f, -0.5f, -0.5f, texture_coords[1].right, texture_coords[1].bottom,
-     0.5f,  0.5f, -0.5f, texture_coords[1].right, texture_coords[1].top,
-    -0.5f,  0.5f, -0.5f, texture_coords[1].left, texture_coords[1].top,    
-
-    -0.5f,  0.5f,  0.5f, texture_coords[2].right, texture_coords[2].top,    
-    -0.5f,  0.5f, -0.5f, texture_coords[2].left, texture_coords[2].top,
-    -0.5f, -0.5f, -0.5f, texture_coords[2].left, texture_coords[2].bottom,
-    -0.5f, -0.5f,  0.5f, texture_coords[2].right, texture_coords[2].bottom,
-
-     0.5f,  0.5f,  0.5f, texture_coords[3].right, texture_coords[3].top,
-     0.5f,  0.5f, -0.5f, texture_coords[3].left, texture_coords[3].top,
-     0.5f, -0.5f, -0.5f, texture_coords[3].left, texture_coords[3].bottom,
-     0.5f, -0.5f,  0.5f, texture_coords[3].right, texture_coords[3].bottom,    
-
-     0.5f, -0.5f, -0.5f, texture_coords[4].left, texture_coords[4].bottom,
-     0.5f, -0.5f,  0.5f, texture_coords[4].right, texture_coords[4].bottom,
-    -0.5f, -0.5f,  0.5f, texture_coords[4].right, texture_coords[4].top,
-    -0.5f, -0.5f, -0.5f, texture_coords[4].left, texture_coords[4].top,    
-
-     0.5f,  0.5f, -0.5f, texture_coords[5].left, texture_coords[5].bottom,
-     0.5f,  0.5f,  0.5f, texture_coords[5].right, texture_coords[5].bottom,
-    -0.5f,  0.5f,  0.5f, texture_coords[5].right, texture_coords[5].top,
-    -0.5f,  0.5f, -0.5f, texture_coords[5].left, texture_coords[5].top,    
-  };
-
-  unsigned int indices[] = {
-    0, 1, 2,
-    3, 2, 0,
-    4, 5, 6,
-    7, 6, 4,
-    8, 9, 10,
-    11, 10, 8,
-    12, 13, 14,
-    15, 14, 12,
-    16, 17, 18,
-    19, 18, 16,
-    20, 21, 22,
-    23, 22, 20
-  };
-
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  return vao;
-}
-
-// Slopes faces near Z (+Z) and up (+Y). Textures go slope, far, left, right, bottom.
-// NOTE(nathan): The slope is actually rectangular so square texures are a no go. FIXME
-GLuint genTexturedSlopeBuffer(int textures[5]) {
-  Rectangle texture_coords[5];
-  texture_indices_to_texture_coords(textures, texture_coords, 5);
-
-  GLuint vao, vbo, ebo;
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &vbo);
-  glGenBuffers(1, &ebo);
-
-  glBindVertexArray(vao);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-  float vertices[] = {
-    -0.5f, -0.5f,  0.5f, texture_coords[0].left, texture_coords[0].bottom,
-     0.5f, -0.5f,  0.5f, texture_coords[0].right, texture_coords[0].bottom,
-     0.5f,  0.5f, -0.5f, texture_coords[0].right, texture_coords[0].top,
-    -0.5f,  0.5f, -0.5f, texture_coords[0].left, texture_coords[0].top,    
-
-    -0.5f, -0.5f, -0.5f, texture_coords[1].left, texture_coords[1].bottom,
-     0.5f, -0.5f, -0.5f, texture_coords[1].right, texture_coords[1].bottom,
-     0.5f,  0.5f, -0.5f, texture_coords[1].right, texture_coords[1].top,
-    -0.5f,  0.5f, -0.5f, texture_coords[1].left, texture_coords[1].top,
-
-    -0.5f,  0.5f, -0.5f, texture_coords[2].right, texture_coords[2].top,    
-    -0.5f, -0.5f,  0.5f, texture_coords[2].left, texture_coords[2].bottom,
-    -0.5f, -0.5f, -0.5f, texture_coords[2].right, texture_coords[2].bottom,
-
-     0.5f,  0.5f, -0.5f, texture_coords[3].right, texture_coords[3].top,
-     0.5f, -0.5f,  0.5f, texture_coords[3].left, texture_coords[3].bottom,
-     0.5f, -0.5f, -0.5f, texture_coords[3].right, texture_coords[3].bottom,    
-
-     0.5f, -0.5f, -0.5f, texture_coords[4].left, texture_coords[4].bottom,
-     0.5f, -0.5f,  0.5f, texture_coords[4].right, texture_coords[4].bottom,
-    -0.5f, -0.5f,  0.5f, texture_coords[4].right, texture_coords[4].top,
-    -0.5f, -0.5f, -0.5f, texture_coords[4].left, texture_coords[4].top,    
-  };
-
-  unsigned int indices[] = {
-    0, 1, 2,
-    3, 2, 0,
-    4, 5, 6,
-    7, 6, 4,
-    8, 9, 10,
-    11, 12, 13,
-    14, 15, 16,
-    17, 16, 14,
-  };
-
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  return vao;
-}
-
-// Slopes faces near Z (+Z), right (+X) and up (+Y). Textures go slope, near, left, bottom.
-// NOTE(nathan): Triangular texures? Hmm. FIXME
-GLuint genTexturedSlopeCornerBuffer(int textures[5]) {
-  Rectangle texture_coords[5];
-  texture_indices_to_texture_coords(textures, texture_coords, 5);
-
-  GLuint vao, vbo, ebo;
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &vbo);
-  glGenBuffers(1, &ebo);
-
-  glBindVertexArray(vao);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-  float vertices[] = {
-    -0.5f, -0.5f,  0.5f, texture_coords[0].left, texture_coords[0].bottom,
-     0.5f, -0.5f, -0.5f, texture_coords[0].right, texture_coords[0].bottom,
-    -0.5f,  0.5f, -0.5f, (texture_coords[0].left + texture_coords[0].right) / 2, texture_coords[0].top,    
-
-    -0.5f, -0.5f, -0.5f, texture_coords[1].left, texture_coords[1].bottom,
-     0.5f, -0.5f, -0.5f, texture_coords[1].right, texture_coords[1].bottom,
-    -0.5f,  0.5f, -0.5f, texture_coords[1].right, texture_coords[1].top,
-
-    -0.5f,  0.5f, -0.5f, texture_coords[2].right, texture_coords[2].top,    
-    -0.5f, -0.5f,  0.5f, texture_coords[2].left, texture_coords[2].bottom,
-    -0.5f, -0.5f, -0.5f, texture_coords[2].right, texture_coords[2].bottom,
-
-     0.5f, -0.5f, -0.5f, texture_coords[4].left, texture_coords[4].bottom,
-    -0.5f, -0.5f, -0.5f, texture_coords[4].right, texture_coords[4].bottom,
-    -0.5f, -0.5f,  0.5f, texture_coords[4].right, texture_coords[4].top,    
-  };
-
-  unsigned int indices[] = {
-    0, 1, 2,
-    3, 4, 5,
-    6, 7, 8,
-    9, 10, 11
-  };
-
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  return vao;
-}
+  
 
 int main(void) {
   glfwInit();
@@ -374,8 +179,10 @@ int main(void) {
 
   glViewport(0, 0, 800, 600);
   glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+  glfwSwapInterval(0);
   
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   printf("%s\n", glGetString(GL_VERSION));
 
@@ -386,32 +193,35 @@ int main(void) {
 
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   GLuint texture = load_texture("resources/terrain.png");
+  GLuint sprite_textures = load_texture("resources/sprites.png");
 
   // int grassTextures[] = {3, 3, 3, 3, 2, 0};
   // GLuint grass = genTexturedCubeBuffer(grassTextures);
+  int stoneTextures[] = {1, 1, 1, 1, 1, 1};
+  GLuint stone = genTexturedCubeBuffer(stoneTextures);
   int stoneSlopeTextures[] = {1, 1, 1, 1, 1};
   GLuint stoneSlope = genTexturedSlopeBuffer(stoneSlopeTextures);
   int stoneSlopeCornerTextures[] = {1, 1, 1, 1};
   GLuint stoneSlopeCorner = genTexturedSlopeCornerBuffer(stoneSlopeCornerTextures);
-  int stoneTextures[] = {1, 1, 1, 1, 1, 1};
-  GLuint stone = genTexturedCubeBuffer(stoneTextures);
+
 
   // Y, Z, X?
   // 0 is nothing, 1 is cube, 2 is -Z, 3 is -X, 4 is +Z, 5 is +X
-  int chunk[3][3][3] = { { { 1, 1, 1 },
-                           { 1, 1, 1 },
-                           { 1, 1, 1 } },
-                         { { 6, 2, 9 },
-                           { 3, 1, 5 },
-                           { 7, 4, 8 } },
-                         { { 0, 0, 0 },
-                           { 0, 1, 0 },
-                           { 0, 0, 0 } } };
+  const int CHUNK_SIZE = 16;
+  int chunk[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+  for (int i = 0; i < CHUNK_SIZE; i++) {
+    for (int j = 0; j < CHUNK_SIZE; j++) {
+      for (int k = 0; k < CHUNK_SIZE; k++) {
+        chunk[i][j][k] = 1;
+      }
+    }
+  }
 
-  //int chunk[3][3][3] = {{{0,0,0},{0,0,0},{0,0,0}},
-  //                      {{0,0,0},{0,8,0},{0,0,0}},
-  //                      {{0,0,0},{0,0,0},{0,0,0}}};
+  Sprite sprites[] = { { { 0.5, CHUNK_SIZE/2.0, -0.5 }, 0 },
+                       { { 4.5, CHUNK_SIZE/2.0, 7.5 }, 0 },
+                       { { -6.5, CHUNK_SIZE/2.0, -2.5 }, 0 } };
 
+  GLuint sprite_vaos[] = { genTexturedGroundedSprite(0) };
 
   struct timespec old_time, new_time;
   clock_gettime(CLOCK_MONOTONIC_RAW, &old_time);
@@ -428,7 +238,7 @@ int main(void) {
 
     frames += 1;
     acc += delta;
-    if (acc >= 0.5) {
+    if (acc >= 2.0) {
       printf("fps: %2.2f\n", frames/acc);
       acc = 0;
       frames = 0;
@@ -438,32 +248,33 @@ int main(void) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    float y_rot = M_PI / 4;
+
     Matrix4x4 view = identity();
-    view *= translate(v3(0.0, 0.0, -5.0));
-    view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 5);
-    view *= rotate(v3(0.0, 1.0, 0.0) * M_PI / 4 * t * 0.5);
+    view *= translate(v3(0.0, 0.0, -CHUNK_SIZE - 5.0));
+    view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 4);
+    view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
     Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
 
     glUseProgram(shaderProgram);
-    glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
     GLuint transformLocation = glGetUniformLocation(shaderProgram, "view");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
     transformLocation = glGetUniformLocation(shaderProgram, "projection");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
 
-    glUseProgram(shaderProgram);
-    for (int y = 0; y < 3; y++) {
-      for (int z = 0; z < 3; z++) {
-        for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+      for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
           // 0 is nothing, 1 is cube, 2 is -Z, 3 is -X, 4 is +Z, 5 is +X
           int block = chunk[y][z][x];
           if (block == 0) {
             continue;
           }
           Matrix4x4 model = identity();
-          model *= translate(v3(x - 1, y - 1, z - 1));
+          model *= translate(v3(x, y, z) - (CHUNK_SIZE - 1)/2.0);
           switch (block) {
             case 0: break;
             case 1: break;
@@ -499,6 +310,19 @@ int main(void) {
           }
         }
       }
+    }
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, sprite_textures);
+    for (unsigned int i = 0; i < (sizeof(sprites) / sizeof(Sprite)); i++) {
+      Sprite s = sprites[i];
+      Matrix4x4 model = identity();
+      model *= translate(s.position);
+      model *= rotate(v3(0, 1, 0) * -y_rot);
+      transformLocation = glGetUniformLocation(shaderProgram, "model");
+      glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
+      glBindVertexArray(sprite_vaos[s.index]);
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
 
     glfwSwapBuffers(window);

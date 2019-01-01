@@ -33,4 +33,9 @@ struct Rectangle {
   float top;
 };
 
+struct Sprite {
+  V3 position;
+  int index;
+};
+
 #pragma GCC diagnostic ignored "-Wpedantic"
