@@ -173,27 +173,70 @@ void fillBlockFlyweights(BlockShapeFlyweights* block_shape_flyweights, Faces* fa
   }
 }
 
-GLuint generateChunkElementArrayBuffer() {
-  int face_count = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6;
-  int indices_buffer_size = face_count * 6 * sizeof(unsigned int);
-  unsigned int* indices = malloc(indices_buffer_size);
+GLuint generateChunkVertexBuffer() {
+  int block_count = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+  // NOTE(nathan): Using V3 here is not great in the long run - colour will probably have to go here too, unless
+  // it's stored in a separate buffer.
+  int vertices_per_block = 6 * 4;
+  size_t size_per_block = vertices_per_block * sizeof(V3);
+  size_t vertex_buffer_size = block_count * size_per_block;
+  // NOTE(nathan): Do we need to malloc? Could this go on the stack?
+  V3* vertex_buffer = malloc(vertex_buffer_size);
 
-  for (int i = 0; i < face_count; i++) {
-    indices[i * 6 + 0] = i * 4 + 0;
-    indices[i * 6 + 1] = i * 4 + 1;
-    indices[i * 6 + 2] = i * 4 + 2;
-    indices[i * 6 + 3] = i * 4 + 0;
-    indices[i * 6 + 4] = i * 4 + 2;
-    indices[i * 6 + 5] = i * 4 + 3;
+
+  float base_verticies[] = {
+    // NEG Z
+    -0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    // POS Z
+    -0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    // NEG X
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f,  0.5f,
+    // POS X
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f, -0.5f,
+     // NEG Y
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f, -0.5f,
+    // POS Y
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f,  0.5f,
+  };
+  for (int x = 0; x < CHUNK_SIZE; x++) {
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+      for (int z = 0; z < CHUNK_SIZE; z++) {
+        int block_index = z * CHUNK_SIZE * CHUNK_SIZE + y * CHUNK_SIZE + x;
+        V3* cursor = vertex_buffer + block_index * size_per_block;
+        memcpy(cursor, base_verticies, size_per_block);
+        V3 offset = v3(x, y, z);
+        for (int v = 0; v < vertices_per_block; v++) {
+          *(cursor + v) += offset;
+        }
+      }
+    }
   }
 
-  GLuint ebo;
-  glGenBuffers(1, &ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_buffer_size, indices, GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  free(indices)
-  return ebo;
+  GLuint vbo;
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size, vertex_buffer, GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  free(vertex_buffer)
+  return vbo;
 }
 
 static void copyVertices(float* vertex_cursor, float* vertices, int x, int y, int z, int num_vertices) {
@@ -210,6 +253,8 @@ void fillChunkRenderData(Chunk* chunk) {
   clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
   printf("Allocating space for %d vertices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 4);
   V3* vertices = (V3*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 4 * sizeof(V3));
+  printf("Allocating space for %d indices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6);
+  int* indices = (int*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6 * sizeof(int));
 
   clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
   delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
