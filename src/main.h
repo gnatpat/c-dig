@@ -11,3 +11,5 @@
 #include "defs.h"
 #include "dig_math.h"
 #include "models.h"
+#include "shaders.h"
+#include "utils.h"

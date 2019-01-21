@@ -3,26 +3,21 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-
 #include "models.cpp"
+#include "shaders.cpp"
+#include "utils.cpp"
 
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
-void initChunk(Chunk* c, Constants* constants) {
+void initChunk(Chunk* c) {
   for (int x = 0; x < CHUNK_SIZE; x++) {
     for (int y = 0; y < CHUNK_SIZE; y++) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
-        c->blocks[x][y][z].block_shape = &constants->block_shape_flyweights.cube;
-        c->
+        c->blocks[x][y][z].block_shape = (BlockShape)(rand() % BLOCK_SHAPE_COUNT);
       }
     }
   }
-}
-
-void initaliseConstants(Constants* constants) {
-  initFaces(&constants->faces);
-  fillBlockFlyweights(&constants->block_shape_flyweights, &constants->faces);
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
@@ -31,77 +26,6 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
   SCREEN_HEIGHT = height;
   printf("%dx%d\n", SCREEN_WIDTH, SCREEN_HEIGHT);
   glViewport(0, 0, width, height);
-}
-
-int getFileSize(FILE *fp) {
-  fseek(fp, 0, SEEK_END);
-  int size = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-  return size;
-}
-
-GLuint compileShaderFile(const char* path, const GLenum shaderType) {
-  FILE *fp = fopen(path, "r");
-  if (fp == NULL) {
-    printf("Couldn't open %s.\n", path);
-    return 0;
-  }
-  GLuint shader = glCreateShader(shaderType);
-
-  int len = getFileSize(fp);
-  char* shaderText = (char*)malloc(len * sizeof(char));
-  fread(shaderText, sizeof(char), len, fp);
-
-  glShaderSource(shader, 1, &shaderText, &len);
-  free(shaderText);
-
-  glCompileShader(shader);
-
-  int success;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-  if (success == GL_FALSE) {
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-    char* infoLog = (char*)malloc(len * sizeof(char));
-    glGetShaderInfoLog(shader, len, NULL, infoLog);
-    printf("Shader compilation error. %s.\n%s\n", path, infoLog);
-    free(infoLog);
-    return 0;
-  }
-
-  return shader;
-}
-
-GLuint compileShader(const char* vertexPath, const char* fragmentPath) {
-  GLuint vertexShader = compileShaderFile(vertexPath, GL_VERTEX_SHADER);
-  if (vertexShader == 0) {
-    return 0;
-  }
-  GLuint fragmentShader = compileShaderFile(fragmentPath, GL_FRAGMENT_SHADER);
-  if (fragmentShader == 0) {
-    return 0;
-  }
-
-  GLuint shader = glCreateProgram();
-  glAttachShader(shader, vertexShader);
-  glAttachShader(shader, fragmentShader);
-  glLinkProgram(shader);
-
-  glDeleteShader(vertexShader);
-  glDeleteShader(fragmentShader);
-
-  int success;
-  glGetProgramiv(shader, GL_LINK_STATUS, &success);
-  if (success == GL_FALSE) {
-    int len;
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-    char* infoLog = (char*)malloc(len * sizeof(char));
-    glGetProgramInfoLog(shader, len, NULL, infoLog);
-    printf("Shader linker error.\n%s\n", infoLog);
-    free(infoLog);
-    return 0;
-  }
-
-  return shader;
 }
 
 GLuint load_texture(const char* filepath) {
@@ -182,15 +106,9 @@ int main(void) {
   GLuint sprite_vaos[] = { genTexturedGroundedSprite(0) };
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
-  initaliseConstants(&game_data->constants);
-  initChunk(&game_data->chunk, &game_data->constants);
+  initChunk(&game_data->chunk);
 
   Chunk* chunk = &game_data->chunk;
-  //BlockShapeFlyweights* block_shape_flyweights = &game_data->constants.block_shape_flyweights;
-  //chunk->blocks[0][15][1].block_shape = &block_shape_flyweights->slopes[XZ_NEG_X][0];
-  //chunk->blocks[2][15][1].block_shape = &block_shape_flyweights->slopes[XZ_POS_X][0];
-  //chunk->blocks[1][15][0].block_shape = &block_shape_flyweights->slopes[XZ_NEG_Z][0];
-  //chunk->blocks[1][15][2].block_shape = &block_shape_flyweights->slopes[XZ_POS_Z][0];
   fillChunkRenderData(chunk);
 
   struct timespec old_time, new_time;
@@ -240,7 +158,7 @@ int main(void) {
 
     ChunkRenderData* render_data = &(chunk->render_data);
     glBindVertexArray(render_data->vao);
-    glDrawElements(GL_TRIANGLES, render_data->num_indices, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
 
     // Sprites
     glUseProgram(shaderProgram);

@@ -1,3 +1,11 @@
+// TODO(nathan): I'm not sure how I feel about macros. These feel like they should be functions.
+#define PUSH_VERTEX(vertex_cursor, vertex, colour) *(vertex_cursor) = { vertex, colour }; vertex_cursor++;
+#define PUSH_SQUARE(cursor, v1, v2, v3, v4, colour) \
+        PUSH_VERTEX(cursor, v1, colour); PUSH_VERTEX(cursor, v2, colour); PUSH_VERTEX(cursor, v3, colour); \
+        PUSH_VERTEX(cursor, v1, colour); PUSH_VERTEX(cursor, v3, colour); PUSH_VERTEX(cursor, v4, colour); 
+#define PUSH_TRIANGLE(cursor, v1, v2, v3, colour) \
+        PUSH_VERTEX(cursor, v1, colour); PUSH_VERTEX(cursor, v2, colour); PUSH_VERTEX(cursor, v3, colour);
+
 void texture_indices_to_texture_coords(int *textures, Rectangle* texture_coords, int num_textures,
                                        int unit_size, int textures_per_row) {
   // NOTE(nathan): Texture map size is hardcoded for now, will need to change.
@@ -13,332 +21,516 @@ void texture_indices_to_texture_coords(int *textures, Rectangle* texture_coords,
   }
 }
 
-void fillTriangleFace(Face* faces, Direction direction, V3 top_right_vertices_as_v3[3], V3 normal) {
-  Quaternion q = from_vector_and_angle(normal, M_PI/2);
-  V3* vs = top_right_vertices_as_v3;
-  faces[TOP_RIGHT].type = TRIANGLE;
-  V3 top_right_vertices[] = { vs[0], vs[1], vs[2] };
-  memcpy(&faces[TOP_RIGHT].vertices[direction], top_right_vertices, sizeof(V3) * 3);
-  vs[0] = rotate(q, vs[0]);
-  vs[1] = rotate(q, vs[1]);
-  vs[2] = rotate(q, vs[2]);
-  faces[TOP_LEFT].type = TRIANGLE;
-  V3 top_left_vertices[] = { vs[0], vs[1], vs[2] };
-  memcpy(&faces[TOP_LEFT].vertices[direction], top_left_vertices, sizeof(V3) * 3);
+//void fillTriangleFace(Face* faces, Direction direction, V3 top_right_vertices_as_v3[3], V3 normal) {
+//  Quaternion q = from_vector_and_angle(normal, M_PI/2);
+//  V3* vs = top_right_vertices_as_v3;
+//  faces[TOP_RIGHT].type = TRIANGLE;
+//  V3 top_right_vertices[] = { vs[0], vs[1], vs[2] };
+//  memcpy(&faces[TOP_RIGHT].vertices[direction], top_right_vertices, sizeof(V3) * 3);
+//  vs[0] = rotate(q, vs[0]);
+//  vs[1] = rotate(q, vs[1]);
+//  vs[2] = rotate(q, vs[2]);
+//  faces[TOP_LEFT].type = TRIANGLE;
+//  V3 top_left_vertices[] = { vs[0], vs[1], vs[2] };
+//  memcpy(&faces[TOP_LEFT].vertices[direction], top_left_vertices, sizeof(V3) * 3);
+//
+//  vs[0] = rotate(q, vs[0]);
+//  vs[1] = rotate(q, vs[1]);
+//  vs[2] = rotate(q, vs[2]);
+//  faces[BOTTOM_LEFT].type = TRIANGLE;
+//  V3 bottom_left_vertices[] = { vs[0], vs[1], vs[2] };
+//  memcpy(&faces[BOTTOM_LEFT].vertices[direction], bottom_left_vertices, sizeof(V3) * 3);
+//
+//  vs[0] = rotate(q, vs[0]);
+//  vs[1] = rotate(q, vs[1]);
+//  vs[2] = rotate(q, vs[2]);
+//  faces[BOTTOM_RIGHT].type = TRIANGLE;
+//  V3 bottom_right_vertices[] = { vs[0], vs[1], vs[2] };
+//  memcpy(&faces[BOTTOM_RIGHT].vertices[direction], bottom_right_vertices, sizeof(V3) * 3);
+//}
+//
+//void initFaces(Faces* faces) {
+//  faces->empty_face.type = EMPTY;
+//
+//  // NOTE(nathan): CBA to refactor this - faces now store V3 not float, but memcpy will still work
+//  faces->square_face.type = SQUARE;
+//  float neg_z_vertices[] = {
+//    -0.5f,  0.5f, -0.5f,
+//     0.5f,  0.5f, -0.5f,
+//     0.5f, -0.5f, -0.5f,
+//    -0.5f, -0.5f, -0.5f,
+//  };
+//  memcpy(&faces->square_face.vertices[NEG_Z], neg_z_vertices, sizeof(float) * 12);
+//
+//  float pos_z_vertices[] = {
+//    -0.5f, -0.5f,  0.5f,
+//     0.5f, -0.5f,  0.5f,
+//     0.5f,  0.5f,  0.5f,
+//    -0.5f,  0.5f,  0.5f,
+//  };
+//  memcpy(&faces->square_face.vertices[POS_Z], pos_z_vertices, sizeof(float) * 12);
+//
+//  float neg_x_vertices[] = {
+//    -0.5f,  0.5f,  0.5f,
+//    -0.5f,  0.5f, -0.5f,
+//    -0.5f, -0.5f, -0.5f,
+//    -0.5f, -0.5f,  0.5f,
+//  };
+//  memcpy(&faces->square_face.vertices[NEG_X], neg_x_vertices, sizeof(float) * 12);
+//
+//  float pos_x_vertices[] = {
+//     0.5f,  0.5f, -0.5f,
+//     0.5f,  0.5f,  0.5f,
+//     0.5f, -0.5f,  0.5f,
+//     0.5f, -0.5f, -0.5f,
+//  };
+//  memcpy(&faces->square_face.vertices[POS_X], pos_x_vertices, sizeof(float) * 12);
+//
+//  float neg_y_vertices[] = {
+//     0.5f, -0.5f, -0.5f,
+//     0.5f, -0.5f,  0.5f,
+//    -0.5f, -0.5f,  0.5f,
+//    -0.5f, -0.5f, -0.5f,
+//  };
+//  memcpy(&faces->square_face.vertices[NEG_Y], neg_y_vertices, sizeof(float) * 12);
+//
+//  float pos_y_vertices[] = {
+//     0.5f,  0.5f,  0.5f,
+//     0.5f,  0.5f, -0.5f,
+//    -0.5f,  0.5f, -0.5f,
+//    -0.5f,  0.5f,  0.5f,
+//  };
+//  memcpy(&faces->square_face.vertices[POS_Y], pos_y_vertices, sizeof(float) * 12);
+//
+//  V3 neg_z_traingle[3] = { v3(-0.5f,  0.5f, -0.5f), v3( 0.5f,  0.5f, -0.5f), v3(-0.5f, -0.5f, -0.5f) };
+//  fillTriangleFace(faces->triangle_faces, NEG_Z, neg_z_traingle, v3(0.0, 0.0, -1.0));
+//  V3 pos_z_traingle[3] = { v3( 0.5f,  0.5f,  0.5f), v3(-0.5f,  0.5f,  0.5f), v3( 0.5f, -0.5f,  0.5f) };
+//  fillTriangleFace(faces->triangle_faces, POS_Z, pos_z_traingle, v3(0.0, 0.0, 1.0));
+//
+//  V3 neg_x_traingle[3] = { v3(-0.5f, 0.5f,  0.5f), v3(-0.5f,  0.5f, -0.5f), v3(-0.5f, -0.5f,  0.5f) };
+//  fillTriangleFace(faces->triangle_faces, NEG_X, neg_x_traingle, v3(-1.0, 0.0, 0.0));
+//  V3 pos_x_traingle[3] = { v3( 0.5f, 0.5f, -0.5f), v3( 0.5f,  0.5f,  0.5f), v3( 0.5f, -0.5f, -0.5f) };
+//  fillTriangleFace(faces->triangle_faces, POS_X, pos_x_traingle, v3(1.0, 0.0, 0.0));
+//
+//  V3 neg_y_traingle[3] = { v3(-0.5f,  0.5f,  0.5f), v3( 0.5f,  0.5f, -0.5f), v3( 0.5f,  0.5f,  0.5f) };
+//  fillTriangleFace(faces->triangle_faces, NEG_Y, neg_y_traingle, v3(0.0, -1.0, 0.0));
+//  V3 pos_y_traingle[3] = { v3(-0.5f, -0.5f, -0.5f), v3( 0.5f, -0.5f,  0.5f), v3( 0.5f, -0.5f, -0.5f) };
+//  fillTriangleFace(faces->triangle_faces, POS_Y, pos_y_traingle, v3(0.0, 1.0, 0.0));
+//}
+//
+//void fillBlockFlyweights(BlockShapeFlyweights* block_shape_flyweights, Faces* faces) {
+//  BlockShapeFlyweight empty;
+//  empty.block_type = AIR;
+//  for (int d = 0; d < DIRECTION_COUNT; d++) {
+//    empty.side_faces[d] = &faces->empty_face;
+//  }
+//  block_shape_flyweights->empty = empty;
+//
+//  BlockShapeFlyweight cube;
+//  cube.block_type = CUBE;
+//  for (int d = 0; d < DIRECTION_COUNT; d++) {
+//    cube.side_faces[d] = &faces->square_face;
+//  }
+//  block_shape_flyweights->cube = cube;
+//
+//  // Because I'm lazy we'll reuse this slope object and then copy it into the flyweights struct
+//  BlockShapeFlyweight slope;
+//  slope.block_type = SLOPE;
+//  slope.side_faces[NEG_Y] = &faces->square_face;
+//  slope.side_faces[POS_Y] = &faces->empty_face;
+//
+//  Direction xz_sides[] = {POS_X, NEG_Z, NEG_X, POS_Z, POS_X, NEG_Z, NEG_X, POS_Z};
+//  XZDirection xz_sides_as_xz[] = {XZ_POS_X, XZ_NEG_Z, XZ_NEG_X, XZ_POS_Z};
+//
+//  for (int i = 0; i < 4; i++) {
+//    slope.side_faces[xz_sides[i]] = &faces->empty_face;
+//    slope.side_faces[xz_sides[i+1]] = &faces->triangle_faces[BOTTOM_RIGHT];
+//    slope.side_faces[xz_sides[i+2]] = &faces->square_face;
+//    slope.side_faces[xz_sides[i+3]] = &faces->triangle_faces[BOTTOM_LEFT];
+//
+//    // A little hack here. We use the Up facing sqaure face, and use the order of the vertices to bring the two
+//    // at the bottom down to create the slope. Horrible.
+//    memcpy(&slope.slope_vertices, faces->square_face.vertices[POS_Y], 4 * sizeof(V3));
+//    slope.slope_vertices[((i  )%4)].y = -0.5;
+//    slope.slope_vertices[((i+1)%4)].y = -0.5;
+//
+//    slope.block_direction.slope_direction.facing = xz_sides_as_xz[i];
+//    slope.block_direction.slope_direction.sloping_down = true;
+//
+//    block_shape_flyweights->slopes[xz_sides_as_xz[i]][0] = slope;
+//  }
+//
+//  slope.side_faces[NEG_Y] = &faces->empty_face;
+//  slope.side_faces[POS_Y] = &faces->square_face;
+//  for (int i = 0; i < 4; i++) {
+//    slope.side_faces[xz_sides[i]] = &faces->empty_face;
+//    slope.side_faces[xz_sides[i+1]] = &faces->triangle_faces[TOP_LEFT];
+//    slope.side_faces[xz_sides[i+2]] = &faces->square_face;
+//    slope.side_faces[xz_sides[i+3]] = &faces->triangle_faces[TOP_RIGHT];
+//
+//    slope.block_direction.slope_direction.facing = xz_sides_as_xz[i];
+//    slope.block_direction.slope_direction.sloping_down = false;
+//
+//    // A little hack here. We use the down facing sqaure face, and use the order of the vertices to bring the two
+//    // at the top up to create the slope. Horrible.
+//    memcpy(&slope.slope_vertices, faces->square_face.vertices[NEG_Y], 4 * sizeof(V3));
+//    slope.slope_vertices[(i+2)%4].y = -0.5;
+//    slope.slope_vertices[(i+3)%4].y = -0.5;
+//
+//    block_shape_flyweights->slopes[xz_sides_as_xz[i]][1] = slope;
+//  }
+//}
 
-  vs[0] = rotate(q, vs[0]);
-  vs[1] = rotate(q, vs[1]);
-  vs[2] = rotate(q, vs[2]);
-  faces[BOTTOM_LEFT].type = TRIANGLE;
-  V3 bottom_left_vertices[] = { vs[0], vs[1], vs[2] };
-  memcpy(&faces[BOTTOM_LEFT].vertices[direction], bottom_left_vertices, sizeof(V3) * 3);
-
-  vs[0] = rotate(q, vs[0]);
-  vs[1] = rotate(q, vs[1]);
-  vs[2] = rotate(q, vs[2]);
-  faces[BOTTOM_RIGHT].type = TRIANGLE;
-  V3 bottom_right_vertices[] = { vs[0], vs[1], vs[2] };
-  memcpy(&faces[BOTTOM_RIGHT].vertices[direction], bottom_right_vertices, sizeof(V3) * 3);
+inline BlockShape getBlockShapeAt(Chunk* c, int x, int y, int z) {
+  if (x < 0 || y < 0 || z < 0 || x >= CHUNK_SIZE || y >= CHUNK_SIZE || z >= CHUNK_SIZE) {
+    return AIR;
+  }
+  return c->blocks[x][y][z].block_shape;
 }
 
-void initFaces(Faces* faces) {
-  faces->empty_face.type = EMPTY;
-
-  // NOTE(nathan): CBA to refactor this - faces now store V3 not float, but memcpy will still work
-  faces->square_face.type = SQUARE;
-  float neg_z_vertices[] = {
-    -0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-  };
-  memcpy(&faces->square_face.vertices[NEG_Z], neg_z_vertices, sizeof(float) * 12);
-
-  float pos_z_vertices[] = {
-    -0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-  };
-  memcpy(&faces->square_face.vertices[POS_Z], pos_z_vertices, sizeof(float) * 12);
-
-  float neg_x_vertices[] = {
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-  };
-  memcpy(&faces->square_face.vertices[NEG_X], neg_x_vertices, sizeof(float) * 12);
-
-  float pos_x_vertices[] = {
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f, -0.5f,
-  };
-  memcpy(&faces->square_face.vertices[POS_X], pos_x_vertices, sizeof(float) * 12);
-
-  float neg_y_vertices[] = {
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f, -0.5f,
-  };
-  memcpy(&faces->square_face.vertices[NEG_Y], neg_y_vertices, sizeof(float) * 12);
-
-  float pos_y_vertices[] = {
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f,  0.5f,
-  };
-  memcpy(&faces->square_face.vertices[POS_Y], pos_y_vertices, sizeof(float) * 12);
-
-  V3 neg_z_traingle[3] = { v3(-0.5f,  0.5f, -0.5f), v3( 0.5f,  0.5f, -0.5f), v3(-0.5f, -0.5f, -0.5f) };
-  fillTriangleFace(faces->triangle_faces, NEG_Z, neg_z_traingle, v3(0.0, 0.0, -1.0));
-  V3 pos_z_traingle[3] = { v3( 0.5f,  0.5f,  0.5f), v3(-0.5f,  0.5f,  0.5f), v3( 0.5f, -0.5f,  0.5f) };
-  fillTriangleFace(faces->triangle_faces, POS_Z, pos_z_traingle, v3(0.0, 0.0, 1.0));
-
-  V3 neg_x_traingle[3] = { v3(-0.5f, 0.5f,  0.5f), v3(-0.5f,  0.5f, -0.5f), v3(-0.5f, -0.5f,  0.5f) };
-  fillTriangleFace(faces->triangle_faces, NEG_X, neg_x_traingle, v3(-1.0, 0.0, 0.0));
-  V3 pos_x_traingle[3] = { v3( 0.5f, 0.5f, -0.5f), v3( 0.5f,  0.5f,  0.5f), v3( 0.5f, -0.5f, -0.5f) };
-  fillTriangleFace(faces->triangle_faces, POS_X, pos_x_traingle, v3(1.0, 0.0, 0.0));
-
-  V3 neg_y_traingle[3] = { v3(-0.5f,  0.5f,  0.5f), v3( 0.5f,  0.5f, -0.5f), v3( 0.5f,  0.5f,  0.5f) };
-  fillTriangleFace(faces->triangle_faces, NEG_Y, neg_y_traingle, v3(0.0, -1.0, 0.0));
-  V3 pos_y_traingle[3] = { v3(-0.5f, -0.5f, -0.5f), v3( 0.5f, -0.5f,  0.5f), v3( 0.5f, -0.5f, -0.5f) };
-  fillTriangleFace(faces->triangle_faces, POS_Y, pos_y_traingle, v3(0.0, 1.0, 0.0));
-}
-
-void fillBlockFlyweights(BlockShapeFlyweights* block_shape_flyweights, Faces* faces) {
-  BlockShapeFlyweight empty;
-  empty.block_type = AIR;
-  for (int d = 0; d < DIRECTION_COUNT; d++) {
-    empty.side_faces[d] = &faces->empty_face;
-  }
-  block_shape_flyweights->empty = empty;
-
-  BlockShapeFlyweight cube;
-  cube.block_type = CUBE;
-  for (int d = 0; d < DIRECTION_COUNT; d++) {
-    cube.side_faces[d] = &faces->square_face;
-  }
-  block_shape_flyweights->cube = cube;
-
-  // Because I'm lazy we'll reuse this slope object and then copy it into the flyweights struct
-  BlockShapeFlyweight slope;
-  slope.block_type = SLOPE;
-  slope.side_faces[NEG_Y] = &faces->square_face;
-  slope.side_faces[POS_Y] = &faces->empty_face;
-
-  Direction xz_sides[] = {POS_X, NEG_Z, NEG_X, POS_Z, POS_X, NEG_Z, NEG_X, POS_Z};
-  XZDirection xz_sides_as_xz[] = {XZ_POS_X, XZ_NEG_Z, XZ_NEG_X, XZ_POS_Z};
-
-  for (int i = 0; i < 4; i++) {
-    slope.side_faces[xz_sides[i]] = &faces->empty_face;
-    slope.side_faces[xz_sides[i+1]] = &faces->triangle_faces[BOTTOM_RIGHT];
-    slope.side_faces[xz_sides[i+2]] = &faces->square_face;
-    slope.side_faces[xz_sides[i+3]] = &faces->triangle_faces[BOTTOM_LEFT];
-
-    // A little hack here. We use the Up facing sqaure face, and use the order of the vertices to bring the two
-    // at the bottom down to create the slope. Horrible.
-    memcpy(&slope.slope_vertices, faces->square_face.vertices[POS_Y], 4 * sizeof(V3));
-    slope.slope_vertices[((i  )%4)].y = -0.5;
-    slope.slope_vertices[((i+1)%4)].y = -0.5;
-
-    slope.block_direction.slope_direction.facing = xz_sides_as_xz[i];
-    slope.block_direction.slope_direction.sloping_down = true;
-
-    block_shape_flyweights->slopes[xz_sides_as_xz[i]][0] = slope;
-  }
-
-  slope.side_faces[NEG_Y] = &faces->empty_face;
-  slope.side_faces[POS_Y] = &faces->square_face;
-  for (int i = 0; i < 4; i++) {
-    slope.side_faces[xz_sides[i]] = &faces->empty_face;
-    slope.side_faces[xz_sides[i+1]] = &faces->triangle_faces[TOP_LEFT];
-    slope.side_faces[xz_sides[i+2]] = &faces->square_face;
-    slope.side_faces[xz_sides[i+3]] = &faces->triangle_faces[TOP_RIGHT];
-
-    slope.block_direction.slope_direction.facing = xz_sides_as_xz[i];
-    slope.block_direction.slope_direction.sloping_down = false;
-
-    // A little hack here. We use the down facing sqaure face, and use the order of the vertices to bring the two
-    // at the top up to create the slope. Horrible.
-    memcpy(&slope.slope_vertices, faces->square_face.vertices[NEG_Y], 4 * sizeof(V3));
-    slope.slope_vertices[(i+2)%4].y = -0.5;
-    slope.slope_vertices[(i+3)%4].y = -0.5;
-
-    block_shape_flyweights->slopes[xz_sides_as_xz[i]][1] = slope;
-  }
-}
-
-GLuint generateChunkVertexBuffer() {
-  int block_count = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
-  // NOTE(nathan): Using V3 here is not great in the long run - colour will probably have to go here too, unless
-  // it's stored in a separate buffer.
-  int vertices_per_block = 6 * 4;
-  size_t size_per_block = vertices_per_block * sizeof(V3);
-  size_t vertex_buffer_size = block_count * size_per_block;
-  // NOTE(nathan): Do we need to malloc? Could this go on the stack?
-  V3* vertex_buffer = malloc(vertex_buffer_size);
-
-
-  float base_verticies[] = {
-    // NEG Z
-    -0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    // POS Z
-    -0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    // NEG X
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-    // POS X
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f, -0.5f,
-     // NEG Y
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f, -0.5f,
-    // POS Y
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f,  0.5f,
-  };
-  for (int x = 0; x < CHUNK_SIZE; x++) {
-    for (int y = 0; y < CHUNK_SIZE; y++) {
-      for (int z = 0; z < CHUNK_SIZE; z++) {
-        int block_index = z * CHUNK_SIZE * CHUNK_SIZE + y * CHUNK_SIZE + x;
-        V3* cursor = vertex_buffer + block_index * size_per_block;
-        memcpy(cursor, base_verticies, size_per_block);
-        V3 offset = v3(x, y, z);
-        for (int v = 0; v < vertices_per_block; v++) {
-          *(cursor + v) += offset;
-        }
-      }
-    }
-  }
-
-  GLuint vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size, vertex_buffer, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  free(vertex_buffer)
-  return vbo;
-}
-
-static void copyVertices(float* vertex_cursor, float* vertices, int x, int y, int z, int num_vertices) {
-  for (int v = 0; v < num_vertices; v++) {
-    *(vertex_cursor + v * 3 + 0) = vertices[v*3 + 0] + x;
-    *(vertex_cursor + v * 3 + 1) = vertices[v*3 + 1] + y;
-    *(vertex_cursor + v * 3 + 2) = vertices[v*3 + 2] + z;
-  }
-}
+V3 RED = v3(1, 0, 0);
+V3 GREEN = v3(0, 1, 0);
+V3 BLUE = v3(0, 0, 1);
+V3 YELLOW = v3(0.8, 0.8, 0);
 
 void fillChunkRenderData(Chunk* chunk) {
   struct timespec start_time, end_time;
   float delta;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
-  printf("Allocating space for %d vertices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 4);
-  V3* vertices = (V3*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 4 * sizeof(V3));
-  printf("Allocating space for %d indices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6);
-  int* indices = (int*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6 * sizeof(int));
+  printf("Allocating space for %d vertices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6);
+  ChunkVertex* vertices = (ChunkVertex*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6 * sizeof(ChunkVertex));
+  ChunkVertex* vertex_cursor = vertices;
 
-  clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-  delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
-  printf("Chunk Render data generation took %.4f seconds.\n", delta);
+  //clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+  //delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
+  //printf("Chunk Render data generation took %.4f seconds.\n", delta);
 
   for(int x = 0; x < CHUNK_SIZE; x++) {
     for(int y = 0; y < CHUNK_SIZE; y++) {
       for(int z = 0; z < CHUNK_SIZE; z++) {
-        Block* block = &chunk->blocks[x][y][z];
-        V3 offset = v3(x, y, z);
-        BlockShapeFlyweight* block_shape = block->block_shape;
-        if (block_shape->block_type == AIR) {
+        Direction opposite_side;
+        bool* block_side_occlusion;
+        BlockShape block_shape = chunk->blocks[x][y][z].block_shape;
+        if (block_shape == AIR) {
           continue;
         }
-        for(int d = 0; d < DIRECTION_COUNT; d++) {
-          Face* face = block_shape->side_faces[d];
-          if (face->type == EMPTY) {
-            continue;
-          } else if (face->type == TRIANGLE) {
-            copyVertices(vertex_cursor, face->vertices[d], x, y, z, 3);
 
-            for (int p = 0; p < 3; p++) {
-              *(index_cursor + p) = vertex_count + p;
+        float fx = x;
+        float fy = y;
+        float fz = z;
+        V3 xyz = { fx    , fy    , fz    };
+        V3 Xyz = { fx + 1, fy    , fz    };
+        V3 xYz = { fx    , fy + 1, fz    };
+        V3 xyZ = { fx    , fy    , fz + 1};
+        V3 xYZ = { fx    , fy + 1, fz + 1};
+        V3 XyZ = { fx + 1, fy    , fz + 1};
+        V3 XYz = { fx + 1, fy + 1, fz    };
+        V3 XYZ = { fx + 1, fy + 1, fz + 1};
+
+        // POS Z
+        opposite_side = NEG_Z;
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y, z+1) * 30 + opposite_side * 5);
+        switch(block_shape) {
+          case CUBE:
+          case NEG_Z_NEG_Y_SLOPE:
+          case NEG_Z_POS_Y_SLOPE:
+            if (block_side_occlusion[FULL]) {
+              break;
             }
+            PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYZ, xYZ, BLUE)
+            break;
 
-            vertex_count += 3;
-            vertex_cursor += 9;
-            index_cursor += 3;
-          } else if (face->type == SQUARE) {
-            copyVertices(vertex_cursor, face->vertices[d], x, y, z, 4);
-            memcpy(index_cursor, square_indices, 6 * sizeof(unsigned int));
-            for (unsigned int p = 0; p < 6; p++) {
-              *(index_cursor + p) += vertex_count;
+          case POS_X_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_LEFT]) {
+              break;
             }
+            PUSH_TRIANGLE(vertex_cursor, xyZ, XyZ, xYZ, BLUE);
+            break;
 
-            vertex_count += 4;
-            vertex_cursor += 12;
-            index_cursor += 6;
-          }
+          case NEG_X_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyZ, XyZ, XYZ, BLUE);
+            break;
+
+          case POS_X_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyZ, XYZ, xYZ, BLUE);
+            break;
+
+          case NEG_X_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, XyZ, XYZ, xYZ, BLUE);
+            break;
+      
+          case POS_Z_POS_Y_SLOPE:
+          case POS_Z_NEG_Y_SLOPE:
+          case AIR:
+          case BLOCK_SHAPE_COUNT:
+            break;
         }
-        if (block_shape->block_type == SLOPE) {
-          copyVertices(vertex_cursor, block_shape->slope_vertices, x, y, z, 4);
 
-          memcpy(index_cursor, square_indices, 6 * sizeof(unsigned int));
-          for (unsigned int p = 0; p < 6; p++) {
-            *(index_cursor + p) += vertex_count;
-          }
 
-          vertex_count += 4;
-          vertex_cursor += 12;
-          index_cursor += 6;
+        // POS X
+        opposite_side = NEG_X;
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x+1, y, z) * 30 + opposite_side * 5);
+        switch(block_shape) {
+          case CUBE:
+          case NEG_X_NEG_Y_SLOPE:
+          case NEG_X_POS_Y_SLOPE:
+            if (block_side_occlusion[FULL]) {
+              break;
+            }
+            PUSH_SQUARE(vertex_cursor, XyZ, Xyz, XYz, XYZ, RED);
+            break;
+
+          case NEG_Z_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, XyZ, Xyz, XYZ, RED);
+            break;
+
+          case POS_Z_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, XyZ, Xyz, XYz, RED);
+            break;
+
+          case NEG_Z_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, XyZ, XYz, XYZ, RED);
+            break;
+
+          case POS_Z_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XYz, XYZ, RED);
+            break;
+      
+          case POS_X_POS_Y_SLOPE:
+          case POS_X_NEG_Y_SLOPE:
+          case AIR:
+          case BLOCK_SHAPE_COUNT:
+            break;
+        }
+
+        // NEG Z
+        opposite_side = POS_Z;
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y, z-1) * 30 + opposite_side * 5);
+        switch(block_shape) {
+          case CUBE:
+          case POS_Z_NEG_Y_SLOPE:
+          case POS_Z_POS_Y_SLOPE:
+            if (block_side_occlusion[FULL]) {
+              break;
+            }
+            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYz, Xyz, BLUE);
+            break;
+
+          case NEG_X_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, XYz, BLUE);
+            break;
+
+          case POS_X_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, xYz, BLUE);
+            break;
+
+          case NEG_X_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xYz, XYz, BLUE);
+            break;
+
+          case POS_X_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyz, xYz, XYz, BLUE);
+            break;
+      
+          case NEG_Z_POS_Y_SLOPE:
+          case NEG_Z_NEG_Y_SLOPE:
+          case AIR:
+          case BLOCK_SHAPE_COUNT:
+            break;
+        }
+        
+        // NEG X
+        opposite_side = POS_X;
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x-1, y, z) * 30 + opposite_side * 5);
+        switch(block_shape) {
+          case CUBE:
+          case POS_X_NEG_Y_SLOPE:
+          case POS_X_POS_Y_SLOPE:
+            if (block_side_occlusion[FULL]) {
+              break;
+            }
+            PUSH_SQUARE(vertex_cursor, xyz, xyZ, xYZ, xYz, RED);
+            break;
+
+          case POS_Z_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYz, RED);
+            break;
+
+          case NEG_Z_NEG_Y_SLOPE:
+            if (block_side_occlusion[BOTTOM_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYZ, RED);
+            break;
+
+          case POS_Z_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyz, xYZ, xYz, RED);
+            break;
+
+          case NEG_Z_POS_Y_SLOPE:
+            if (block_side_occlusion[TOP_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyZ, xYZ, xYz, RED);
+            break;
+      
+          case NEG_X_POS_Y_SLOPE:
+          case NEG_X_NEG_Y_SLOPE:
+          case AIR:
+          case BLOCK_SHAPE_COUNT:
+            break;
+        }
+        
+        // POS Y
+        opposite_side = NEG_Y;
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y+1, z) * 30 + opposite_side * 5);
+        switch(block_shape) {
+          case CUBE:
+          case POS_X_POS_Y_SLOPE:
+          case POS_Z_POS_Y_SLOPE:
+          case NEG_Z_POS_Y_SLOPE:
+          case NEG_X_POS_Y_SLOPE:
+            if (block_side_occlusion[FULL]) {
+              break;
+            }
+            PUSH_SQUARE(vertex_cursor, xYZ, XYZ, XYz, xYz, GREEN);
+            break;
+
+          case POS_Z_NEG_Y_SLOPE:
+          case POS_X_NEG_Y_SLOPE:
+          case NEG_Z_NEG_Y_SLOPE:
+          case NEG_X_NEG_Y_SLOPE:
+          case AIR:
+          case BLOCK_SHAPE_COUNT:
+            break;
+        }
+        
+
+        // NEG Y
+        opposite_side = POS_Y;
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y-1, z) * 30 + opposite_side * 5);
+        switch(block_shape) {
+          case CUBE:
+          case POS_Z_NEG_Y_SLOPE:
+          case POS_X_NEG_Y_SLOPE:
+          case NEG_Z_NEG_Y_SLOPE:
+          case NEG_X_NEG_Y_SLOPE:
+            if (block_side_occlusion[FULL]) {
+              break;
+            }
+            PUSH_SQUARE(vertex_cursor, xyz, Xyz, XyZ, xyZ, GREEN);
+            break;
+
+          case POS_X_POS_Y_SLOPE:
+          case POS_Z_POS_Y_SLOPE:
+          case NEG_Z_POS_Y_SLOPE:
+          case NEG_X_POS_Y_SLOPE:
+          case AIR:
+          case BLOCK_SHAPE_COUNT:
+            break;
+        }
+
+        // SLOPE
+        switch(block_shape) {
+          case POS_Z_NEG_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYz, xYz, YELLOW);
+            break;
+          case POS_X_NEG_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, XyZ, Xyz, xYz, xYZ, YELLOW);
+            break;
+          case NEG_Z_NEG_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, Xyz, xyz, xYZ, XYZ, YELLOW);
+            break;
+          case NEG_X_NEG_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, xyz, xyZ, XYZ, XYz, YELLOW);
+            break;
+          case POS_Z_POS_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, Xyz, XYZ, xYZ, xyz, YELLOW);
+            break;
+          case POS_X_POS_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, xyz, XYz, XYZ, xyZ, YELLOW);
+            break;
+          case NEG_Z_POS_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, xyZ, xYz, XYz, XyZ, YELLOW);
+            break;
+          case NEG_X_POS_Y_SLOPE:
+            PUSH_SQUARE(vertex_cursor, XyZ, xYZ, xYz, Xyz, YELLOW);
+            break;
+
+          case CUBE:
+          case AIR:
+          case BLOCK_SHAPE_COUNT:
+            break;
         }
       }
     }
   }
+  
+  ptrdiff_t vertex_count = vertex_cursor - vertices;
+  printf("Vertex count: %ld\n", vertex_count);
 
-  ptrdiff_t index_count = index_cursor - indices;
-  printf("Vertex count: %d, Index Count: %td\n", vertex_count, index_count);
+  //clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+  //delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
+  //printf("Chunk Render data generation took %.4f seconds.\n", delta);
 
-  clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-  delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
-  printf("Chunk Render data generation took %.4f seconds.\n", delta);
-
-  GLuint vao, vbo, ebo;
+  GLuint vao, vbo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
-  glGenBuffers(1, &ebo);
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ARRAY_BUFFER, (vertex_cursor - vertices) * sizeof(float), vertices, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, (index_cursor - indices) * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(ChunkVertex), vertices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
 
   chunk->render_data.vao = vao;
-  chunk->render_data.num_indices = (index_cursor - indices);
+  chunk->render_data.num_vertices = vertex_count;
 
-  clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-  delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
-  printf("Chunk Render data generation took %.4f seconds.\n", delta);
+  //clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+  //delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
+  //printf("Chunk Render data generation took %.4f seconds.\n", delta);
 
   free(vertices);
-  free(indices);
 
   clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
   delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;

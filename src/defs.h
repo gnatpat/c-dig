@@ -40,12 +40,12 @@ struct Sprite {
 };
 
 enum Direction {
-  POS_X,
-  POS_Y,
   POS_Z,
-  NEG_X,
-  NEG_Y,
+  POS_X,
   NEG_Z,
+  NEG_X,
+  POS_Y,
+  NEG_Y,
 
   DIRECTION_COUNT
 };
@@ -61,62 +61,94 @@ enum XZDirection {
 
 
 // Oriented towards the triangle, with y-axis positive being up if possible, else x axis pointing right.
-enum TriangleRotation {
+//enum TriangleRotation {
+//  TOP_RIGHT,
+//  TOP_LEFT,
+//  BOTTOM_LEFT,
+//  BOTTOM_RIGHT,
+//
+//  TRIANGLE_ROTATION_COUNT
+//};
+//
+//enum FaceType {
+//  EMPTY,
+//  TRIANGLE,
+//  SQUARE
+//};
+//
+//struct Face {
+//  FaceType type;
+//  TriangleRotation triangle_rotation;
+//  V3 vertices[DIRECTION_COUNT][4];
+//};
+
+//enum BlockType {
+//  AIR,
+//  CUBE,
+//  SLOPE,
+//  CORNER_SLOPE,
+//
+//  BLOCK_TYPE_COUNT
+//};
+//
+//union BlockDirection {
+//  struct {
+//    bool x;
+//    bool y;
+//    bool z;
+//  } corner_direction;
+//  struct {
+//    XZDirection facing;
+//    bool sloping_down;
+//  } slope_direction;
+//};
+
+enum BlockShape {
+  AIR,
+  CUBE,
+  POS_Z_NEG_Y_SLOPE,
+  POS_X_NEG_Y_SLOPE,
+  NEG_Z_NEG_Y_SLOPE,
+  NEG_X_NEG_Y_SLOPE,
+  POS_Z_POS_Y_SLOPE,
+  POS_X_POS_Y_SLOPE,
+  NEG_Z_POS_Y_SLOPE,
+  NEG_X_POS_Y_SLOPE,
+//  NEG_NEG_NEG_CORNER,
+//  POS_NEG_NEG_CORNER,
+//  NEG_POS_NEG_CORNER,
+//  NEG_NEG_POS_CORNER,
+//  POS_POS_NEG_CORNER,
+//  NEG_POS_POS_CORNER,
+//  POS_NEG_POS_CORNER,
+//  POS_POS_POS_CORNER,
+
+  BLOCK_SHAPE_COUNT
+};
+
+enum FaceShape {
+  FULL,
   TOP_RIGHT,
   TOP_LEFT,
   BOTTOM_LEFT,
-  BOTTOM_RIGHT,
-
-  TRIANGLE_ROTATION_COUNT
+  BOTTOM_RIGHT
 };
 
-enum FaceType {
-  EMPTY,
-  TRIANGLE,
-  SQUARE
+struct ChunkVertex {
+  V3 vertex;
+  V3 colour;
 };
-
-struct Face {
-  FaceType type;
-  TriangleRotation triangle_rotation;
-  V3 vertices[DIRECTION_COUNT][4];
-};
-
-enum BlockType {
-  AIR,
-  CUBE,
-  SLOPE,
-  CORNER_SLOPE,
-
-  BLOCK_TYPE_COUNT
-};
-
-union BlockDirection {
-  struct {
-    bool x;
-    bool y;
-    bool z;
-  } corner_direction;
-  struct {
-    XZDirection facing;
-    bool sloping_down;
-  } slope_direction;
-};
-
-struct BlockShapeFlyweight {
-  BlockType block_type;
-  BlockDirection block_direction;
-  Face* side_faces[DIRECTION_COUNT];
-  V3 slope_vertices[4];
-}; 
 
 struct Block {
-  BlockShapeFlyweight* block_shape;
-  V3 verticies[24];
+  // TODO(nathan): should all of these be here? They're all representations of the block shape. Who knows.
+  //BlockType block_type;
+  //BlockDirection block_direction;
+  BlockShape block_shape;
 };
 
 struct ChunkRenderData {
   GLuint vao;
+  int num_vertices;
 };
 
 struct Chunk {
@@ -124,28 +156,31 @@ struct Chunk {
   ChunkRenderData render_data;
 };
 
-struct Faces {
-  Face empty_face;
-  Face square_face;
-  Face triangle_faces[TRIANGLE_ROTATION_COUNT];
-};
-
-struct BlockShapeFlyweights {
-  BlockShapeFlyweight empty;
-  BlockShapeFlyweight cube;
-  BlockShapeFlyweight slopes[XZ_DIRECTION_COUNT][2];
-  BlockShapeFlyweight corner_slopes[2][2][2];
-};
-
-struct Constants {
-  BlockShapeFlyweights block_shape_flyweights;
-  Faces faces;
-  GLuint chunk_element_array_buffer;
-};
+//struct Faces {
+//  Face empty_face;
+//  Face square_face;
+//  Face triangle_faces[TRIANGLE_ROTATION_COUNT];
+//};
+//
+//struct BlockShapeFlyweights {
+//  BlockShapeFlyweight empty;
+//  BlockShapeFlyweight cube;
+//  BlockShapeFlyweight slopes[XZ_DIRECTION_COUNT][2];
+//  BlockShapeFlyweight corner_slopes[2][2][2];
+//};
+//
+//struct Constants {
+//  BlockShapeFlyweights block_shape_flyweights;
+//  Faces faces;
+//  GLuint chunk_element_array_buffer;
+//};
 
 struct GameData {
-  Constants constants;
+  //Constants constants;
   Chunk chunk;
 };
+
+// Generated from py/gen_face_bitfields.py
+bool BLOCK_SIDE_OCCLUSION_BITFIELD[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, true, true, true, true, false, false, false, false, true, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, false, false, true, false, false, true, true, true, true, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, false, false, true, false, false, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, false, false, true, false, false, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false};
 
 #pragma GCC diagnostic ignored "-Wpedantic"
