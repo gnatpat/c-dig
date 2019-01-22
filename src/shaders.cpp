@@ -7,11 +7,11 @@ GLuint compileShaderFile(const char* path, const GLenum shaderType) {
   GLuint shader = glCreateShader(shaderType);
 
   int len = getFileSize(fp);
-  char* shaderText = (char*)malloc(len * sizeof(char));
-  fread(shaderText, sizeof(char), len, fp);
+  char* shader_text = (char*)malloc(len * sizeof(char));
+  fread(shader_text, sizeof(char), len, fp);
 
-  glShaderSource(shader, 1, &shaderText, &len);
-  free(shaderText);
+  glShaderSource(shader, 1, &shader_text, &len);
+  free(shader_text);
 
   glCompileShader(shader);
 
@@ -19,43 +19,43 @@ GLuint compileShaderFile(const char* path, const GLenum shaderType) {
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   if (success == GL_FALSE) {
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-    char* infoLog = (char*)malloc(len * sizeof(char));
-    glGetShaderInfoLog(shader, len, NULL, infoLog);
-    printf("Shader compilation error. %s.\n%s\n", path, infoLog);
-    free(infoLog);
+    char* info_log = (char*)malloc(len * sizeof(char));
+    glGetShaderInfoLog(shader, len, NULL, info_log);
+    printf("Shader compilation error. %s.\n%s\n", path, info_log);
+    free(info_log);
     return 0;
   }
 
   return shader;
 }
 
-GLuint compileShader(const char* vertexPath, const char* fragmentPath) {
-  GLuint vertexShader = compileShaderFile(vertexPath, GL_VERTEX_SHADER);
-  if (vertexShader == 0) {
+GLuint compileShader(const char* vertex_path, const char* fragment_path) {
+  GLuint vertex_shader = compileShaderFile(vertex_path, GL_VERTEX_SHADER);
+  if (vertex_shader == 0) {
     return 0;
   }
-  GLuint fragmentShader = compileShaderFile(fragmentPath, GL_FRAGMENT_SHADER);
-  if (fragmentShader == 0) {
+  GLuint fragment_shader = compileShaderFile(fragment_path, GL_FRAGMENT_SHADER);
+  if (fragment_shader == 0) {
     return 0;
   }
 
   GLuint shader = glCreateProgram();
-  glAttachShader(shader, vertexShader);
-  glAttachShader(shader, fragmentShader);
+  glAttachShader(shader, vertex_shader);
+  glAttachShader(shader, fragment_shader);
   glLinkProgram(shader);
 
-  glDeleteShader(vertexShader);
-  glDeleteShader(fragmentShader);
+  glDeleteShader(vertex_shader);
+  glDeleteShader(fragment_shader);
 
   int success;
   glGetProgramiv(shader, GL_LINK_STATUS, &success);
   if (success == GL_FALSE) {
     int len;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-    char* infoLog = (char*)malloc(len * sizeof(char));
-    glGetProgramInfoLog(shader, len, NULL, infoLog);
-    printf("Shader linker error.\n%s\n", infoLog);
-    free(infoLog);
+    char* info_log = (char*)malloc(len * sizeof(char));
+    glGetProgramInfoLog(shader, len, NULL, info_log);
+    printf("Shader linker error.\n%s\n", info_log);
+    free(info_log);
     return 0;
   }
 

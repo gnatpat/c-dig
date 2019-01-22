@@ -14,7 +14,7 @@ void initChunk(Chunk* c) {
   for (int x = 0; x < CHUNK_SIZE; x++) {
     for (int y = 0; y < CHUNK_SIZE; y++) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
-        c->blocks[x][y][z].block_shape = (BlockShape)(rand() % BLOCK_SHAPE_COUNT);
+        c->blocks[x][y][z].block_shape = CUBE;
       }
     }
   }
@@ -28,7 +28,7 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
   glViewport(0, 0, width, height);
 }
 
-GLuint load_texture(const char* filepath) {
+GLuint loadTexture(const char* filepath) {
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -38,14 +38,14 @@ GLuint load_texture(const char* filepath) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   // load and generate the texture
-  int width, height, nrChannels;
-  unsigned char *data = stbi_load(filepath, &width, &height, &nrChannels, 0);
+  int width, height, channels;
+  unsigned char *data = stbi_load(filepath, &width, &height, &channels, 0);
   if (!data) {
     printf("Failed to load texture.");
     return 0;
   }
   GLenum format;
-  if (nrChannels == 3) {
+  if (channels == 3) {
     format = GL_RGB;
   } else {
     format = GL_RGBA;
@@ -55,55 +55,64 @@ GLuint load_texture(const char* filepath) {
   return texture;
 }
 
-
-int main(void) {
+bool initOpenGLAndCreateWindow(GLFWwindow** window) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
-  if (window == NULL)
+  *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+  if (*window == NULL)
   {
       printf("Failed to create GLFW window");
       glfwTerminate();
-      return -1;
+      return false;
   }
-  glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(*window);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
   {
       printf("Failed to initialize GLAD");
-      return -1;
+      return false;
   }    
 
   glViewport(0, 0, 800, 600);
-  glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+  glfwSetFramebufferSizeCallback(*window, framebufferSizeCallback);
   glfwSwapInterval(0);
   
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
+  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
   printf("%s\n", glGetString(GL_VERSION));
 
-  GLuint shaderProgram = compileShader("shader.vs", "shader.fs");
-  if (shaderProgram == 0) {
-    return -1;
-  }
-  GLuint shaderProgramNoTexture = compileShader("shader_no_texture.vs", "shader_no_texture.fs");
-  if (shaderProgramNoTexture == 0) {
+  return true;
+}
+
+int main(void) {
+  GLFWwindow* window;
+  bool success = initOpenGLAndCreateWindow(&window);
+  if (!success) {
     return -1;
   }
 
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  // GLuint texture = load_texture("resources/terrain.png");
-  GLuint sprite_textures = load_texture("resources/sprites.png");
+  GLuint shader_program = compileShader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
+  if (shader_program == 0) {
+    return -1;
+  }
+  GLuint shader_program_no_texture = compileShader("resources/shaders/shader_no_texture.vs", "resources/shaders/shader_no_texture.fs");
+  if (shader_program_no_texture == 0) {
+    return -1;
+  }
+
+  GLuint sprite_textures = loadTexture("resources/sprites.png");
+  GLuint sprite_vaos[] = { genTexturedGroundedSprite(0) };
 
   Sprite sprites[] = { { { 0.5, CHUNK_SIZE/2.0, -0.5 }, 0 },
                        { { 4.5, CHUNK_SIZE/2.0, 7.5 }, 0 },
                        { { -6.5, CHUNK_SIZE/2.0, -2.5 }, 0 } };
 
-  GLuint sprite_vaos[] = { genTexturedGroundedSprite(0) };
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initChunk(&game_data->chunk);
@@ -148,12 +157,12 @@ int main(void) {
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
     Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
 
-    glUseProgram(shaderProgramNoTexture);
-    GLuint transformLocation = glGetUniformLocation(shaderProgram, "view");
+    glUseProgram(shader_program_no_texture);
+    GLuint transformLocation = glGetUniformLocation(shader_program, "view");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
-    transformLocation = glGetUniformLocation(shaderProgram, "projection");
+    transformLocation = glGetUniformLocation(shader_program, "projection");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
-    transformLocation = glGetUniformLocation(shaderProgram, "model");
+    transformLocation = glGetUniformLocation(shader_program, "model");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
 
     ChunkRenderData* render_data = &(chunk->render_data);
@@ -161,10 +170,10 @@ int main(void) {
     glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
 
     // Sprites
-    glUseProgram(shaderProgram);
-    transformLocation = glGetUniformLocation(shaderProgram, "view");
+    glUseProgram(shader_program);
+    transformLocation = glGetUniformLocation(shader_program, "view");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
-    transformLocation = glGetUniformLocation(shaderProgram, "projection");
+    transformLocation = glGetUniformLocation(shader_program, "projection");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
 
     glActiveTexture(GL_TEXTURE0);
@@ -174,7 +183,7 @@ int main(void) {
       model = identity();
       model *= translate(s.position);
       model *= rotate(v3(0, 1, 0) * -y_rot);
-      transformLocation = glGetUniformLocation(shaderProgram, "model");
+      transformLocation = glGetUniformLocation(shader_program, "model");
       glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
       glBindVertexArray(sprite_vaos[s.index]);
       glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -184,6 +193,7 @@ int main(void) {
     glfwPollEvents();    
   }
 
+  free(game_data);
   glfwTerminate();
   return 0;
 }
