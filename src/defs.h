@@ -156,19 +156,6 @@ struct Chunk {
   ChunkRenderData render_data;
 };
 
-//struct Faces {
-//  Face empty_face;
-//  Face square_face;
-//  Face triangle_faces[TRIANGLE_ROTATION_COUNT];
-//};
-//
-//struct BlockShapeFlyweights {
-//  BlockShapeFlyweight empty;
-//  BlockShapeFlyweight cube;
-//  BlockShapeFlyweight slopes[XZ_DIRECTION_COUNT][2];
-//  BlockShapeFlyweight corner_slopes[2][2][2];
-//};
-//
 //struct Constants {
 //  BlockShapeFlyweights block_shape_flyweights;
 //  Faces faces;

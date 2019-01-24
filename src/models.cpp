@@ -21,165 +21,6 @@ void texture_indices_to_texture_coords(int *textures, Rectangle* texture_coords,
   }
 }
 
-//void fillTriangleFace(Face* faces, Direction direction, V3 top_right_vertices_as_v3[3], V3 normal) {
-//  Quaternion q = from_vector_and_angle(normal, M_PI/2);
-//  V3* vs = top_right_vertices_as_v3;
-//  faces[TOP_RIGHT].type = TRIANGLE;
-//  V3 top_right_vertices[] = { vs[0], vs[1], vs[2] };
-//  memcpy(&faces[TOP_RIGHT].vertices[direction], top_right_vertices, sizeof(V3) * 3);
-//  vs[0] = rotate(q, vs[0]);
-//  vs[1] = rotate(q, vs[1]);
-//  vs[2] = rotate(q, vs[2]);
-//  faces[TOP_LEFT].type = TRIANGLE;
-//  V3 top_left_vertices[] = { vs[0], vs[1], vs[2] };
-//  memcpy(&faces[TOP_LEFT].vertices[direction], top_left_vertices, sizeof(V3) * 3);
-//
-//  vs[0] = rotate(q, vs[0]);
-//  vs[1] = rotate(q, vs[1]);
-//  vs[2] = rotate(q, vs[2]);
-//  faces[BOTTOM_LEFT].type = TRIANGLE;
-//  V3 bottom_left_vertices[] = { vs[0], vs[1], vs[2] };
-//  memcpy(&faces[BOTTOM_LEFT].vertices[direction], bottom_left_vertices, sizeof(V3) * 3);
-//
-//  vs[0] = rotate(q, vs[0]);
-//  vs[1] = rotate(q, vs[1]);
-//  vs[2] = rotate(q, vs[2]);
-//  faces[BOTTOM_RIGHT].type = TRIANGLE;
-//  V3 bottom_right_vertices[] = { vs[0], vs[1], vs[2] };
-//  memcpy(&faces[BOTTOM_RIGHT].vertices[direction], bottom_right_vertices, sizeof(V3) * 3);
-//}
-//
-//void initFaces(Faces* faces) {
-//  faces->empty_face.type = EMPTY;
-//
-//  // NOTE(nathan): CBA to refactor this - faces now store V3 not float, but memcpy will still work
-//  faces->square_face.type = SQUARE;
-//  float neg_z_vertices[] = {
-//    -0.5f,  0.5f, -0.5f,
-//     0.5f,  0.5f, -0.5f,
-//     0.5f, -0.5f, -0.5f,
-//    -0.5f, -0.5f, -0.5f,
-//  };
-//  memcpy(&faces->square_face.vertices[NEG_Z], neg_z_vertices, sizeof(float) * 12);
-//
-//  float pos_z_vertices[] = {
-//    -0.5f, -0.5f,  0.5f,
-//     0.5f, -0.5f,  0.5f,
-//     0.5f,  0.5f,  0.5f,
-//    -0.5f,  0.5f,  0.5f,
-//  };
-//  memcpy(&faces->square_face.vertices[POS_Z], pos_z_vertices, sizeof(float) * 12);
-//
-//  float neg_x_vertices[] = {
-//    -0.5f,  0.5f,  0.5f,
-//    -0.5f,  0.5f, -0.5f,
-//    -0.5f, -0.5f, -0.5f,
-//    -0.5f, -0.5f,  0.5f,
-//  };
-//  memcpy(&faces->square_face.vertices[NEG_X], neg_x_vertices, sizeof(float) * 12);
-//
-//  float pos_x_vertices[] = {
-//     0.5f,  0.5f, -0.5f,
-//     0.5f,  0.5f,  0.5f,
-//     0.5f, -0.5f,  0.5f,
-//     0.5f, -0.5f, -0.5f,
-//  };
-//  memcpy(&faces->square_face.vertices[POS_X], pos_x_vertices, sizeof(float) * 12);
-//
-//  float neg_y_vertices[] = {
-//     0.5f, -0.5f, -0.5f,
-//     0.5f, -0.5f,  0.5f,
-//    -0.5f, -0.5f,  0.5f,
-//    -0.5f, -0.5f, -0.5f,
-//  };
-//  memcpy(&faces->square_face.vertices[NEG_Y], neg_y_vertices, sizeof(float) * 12);
-//
-//  float pos_y_vertices[] = {
-//     0.5f,  0.5f,  0.5f,
-//     0.5f,  0.5f, -0.5f,
-//    -0.5f,  0.5f, -0.5f,
-//    -0.5f,  0.5f,  0.5f,
-//  };
-//  memcpy(&faces->square_face.vertices[POS_Y], pos_y_vertices, sizeof(float) * 12);
-//
-//  V3 neg_z_traingle[3] = { v3(-0.5f,  0.5f, -0.5f), v3( 0.5f,  0.5f, -0.5f), v3(-0.5f, -0.5f, -0.5f) };
-//  fillTriangleFace(faces->triangle_faces, NEG_Z, neg_z_traingle, v3(0.0, 0.0, -1.0));
-//  V3 pos_z_traingle[3] = { v3( 0.5f,  0.5f,  0.5f), v3(-0.5f,  0.5f,  0.5f), v3( 0.5f, -0.5f,  0.5f) };
-//  fillTriangleFace(faces->triangle_faces, POS_Z, pos_z_traingle, v3(0.0, 0.0, 1.0));
-//
-//  V3 neg_x_traingle[3] = { v3(-0.5f, 0.5f,  0.5f), v3(-0.5f,  0.5f, -0.5f), v3(-0.5f, -0.5f,  0.5f) };
-//  fillTriangleFace(faces->triangle_faces, NEG_X, neg_x_traingle, v3(-1.0, 0.0, 0.0));
-//  V3 pos_x_traingle[3] = { v3( 0.5f, 0.5f, -0.5f), v3( 0.5f,  0.5f,  0.5f), v3( 0.5f, -0.5f, -0.5f) };
-//  fillTriangleFace(faces->triangle_faces, POS_X, pos_x_traingle, v3(1.0, 0.0, 0.0));
-//
-//  V3 neg_y_traingle[3] = { v3(-0.5f,  0.5f,  0.5f), v3( 0.5f,  0.5f, -0.5f), v3( 0.5f,  0.5f,  0.5f) };
-//  fillTriangleFace(faces->triangle_faces, NEG_Y, neg_y_traingle, v3(0.0, -1.0, 0.0));
-//  V3 pos_y_traingle[3] = { v3(-0.5f, -0.5f, -0.5f), v3( 0.5f, -0.5f,  0.5f), v3( 0.5f, -0.5f, -0.5f) };
-//  fillTriangleFace(faces->triangle_faces, POS_Y, pos_y_traingle, v3(0.0, 1.0, 0.0));
-//}
-//
-//void fillBlockFlyweights(BlockShapeFlyweights* block_shape_flyweights, Faces* faces) {
-//  BlockShapeFlyweight empty;
-//  empty.block_type = AIR;
-//  for (int d = 0; d < DIRECTION_COUNT; d++) {
-//    empty.side_faces[d] = &faces->empty_face;
-//  }
-//  block_shape_flyweights->empty = empty;
-//
-//  BlockShapeFlyweight cube;
-//  cube.block_type = CUBE;
-//  for (int d = 0; d < DIRECTION_COUNT; d++) {
-//    cube.side_faces[d] = &faces->square_face;
-//  }
-//  block_shape_flyweights->cube = cube;
-//
-//  // Because I'm lazy we'll reuse this slope object and then copy it into the flyweights struct
-//  BlockShapeFlyweight slope;
-//  slope.block_type = SLOPE;
-//  slope.side_faces[NEG_Y] = &faces->square_face;
-//  slope.side_faces[POS_Y] = &faces->empty_face;
-//
-//  Direction xz_sides[] = {POS_X, NEG_Z, NEG_X, POS_Z, POS_X, NEG_Z, NEG_X, POS_Z};
-//  XZDirection xz_sides_as_xz[] = {XZ_POS_X, XZ_NEG_Z, XZ_NEG_X, XZ_POS_Z};
-//
-//  for (int i = 0; i < 4; i++) {
-//    slope.side_faces[xz_sides[i]] = &faces->empty_face;
-//    slope.side_faces[xz_sides[i+1]] = &faces->triangle_faces[BOTTOM_RIGHT];
-//    slope.side_faces[xz_sides[i+2]] = &faces->square_face;
-//    slope.side_faces[xz_sides[i+3]] = &faces->triangle_faces[BOTTOM_LEFT];
-//
-//    // A little hack here. We use the Up facing sqaure face, and use the order of the vertices to bring the two
-//    // at the bottom down to create the slope. Horrible.
-//    memcpy(&slope.slope_vertices, faces->square_face.vertices[POS_Y], 4 * sizeof(V3));
-//    slope.slope_vertices[((i  )%4)].y = -0.5;
-//    slope.slope_vertices[((i+1)%4)].y = -0.5;
-//
-//    slope.block_direction.slope_direction.facing = xz_sides_as_xz[i];
-//    slope.block_direction.slope_direction.sloping_down = true;
-//
-//    block_shape_flyweights->slopes[xz_sides_as_xz[i]][0] = slope;
-//  }
-//
-//  slope.side_faces[NEG_Y] = &faces->empty_face;
-//  slope.side_faces[POS_Y] = &faces->square_face;
-//  for (int i = 0; i < 4; i++) {
-//    slope.side_faces[xz_sides[i]] = &faces->empty_face;
-//    slope.side_faces[xz_sides[i+1]] = &faces->triangle_faces[TOP_LEFT];
-//    slope.side_faces[xz_sides[i+2]] = &faces->square_face;
-//    slope.side_faces[xz_sides[i+3]] = &faces->triangle_faces[TOP_RIGHT];
-//
-//    slope.block_direction.slope_direction.facing = xz_sides_as_xz[i];
-//    slope.block_direction.slope_direction.sloping_down = false;
-//
-//    // A little hack here. We use the down facing sqaure face, and use the order of the vertices to bring the two
-//    // at the top up to create the slope. Horrible.
-//    memcpy(&slope.slope_vertices, faces->square_face.vertices[NEG_Y], 4 * sizeof(V3));
-//    slope.slope_vertices[(i+2)%4].y = -0.5;
-//    slope.slope_vertices[(i+3)%4].y = -0.5;
-//
-//    block_shape_flyweights->slopes[xz_sides_as_xz[i]][1] = slope;
-//  }
-//}
 
 inline BlockShape getBlockShapeAt(Chunk* c, int x, int y, int z) {
   if (x < 0 || y < 0 || z < 0 || x >= CHUNK_SIZE || y >= CHUNK_SIZE || z >= CHUNK_SIZE) {
@@ -187,6 +28,7 @@ inline BlockShape getBlockShapeAt(Chunk* c, int x, int y, int z) {
   }
   return c->blocks[x][y][z].block_shape;
 }
+
 
 V3 RED = v3(1, 0, 0);
 V3 GREEN = v3(0, 1, 0);
@@ -200,10 +42,6 @@ void fillChunkRenderData(Chunk* chunk) {
   printf("Allocating space for %d vertices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6);
   ChunkVertex* vertices = (ChunkVertex*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6 * sizeof(ChunkVertex));
   ChunkVertex* vertex_cursor = vertices;
-
-  //clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-  //delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
-  //printf("Chunk Render data generation took %.4f seconds.\n", delta);
 
   for(int x = 0; x < CHUNK_SIZE; x++) {
     for(int y = 0; y < CHUNK_SIZE; y++) {
@@ -508,10 +346,6 @@ void fillChunkRenderData(Chunk* chunk) {
   ptrdiff_t vertex_count = vertex_cursor - vertices;
   printf("Vertex count: %ld\n", vertex_count);
 
-  //clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-  //delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
-  //printf("Chunk Render data generation took %.4f seconds.\n", delta);
-
   GLuint vao, vbo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
@@ -525,10 +359,6 @@ void fillChunkRenderData(Chunk* chunk) {
 
   chunk->render_data.vao = vao;
   chunk->render_data.num_vertices = vertex_count;
-
-  //clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-  //delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
-  //printf("Chunk Render data generation took %.4f seconds.\n", delta);
 
   free(vertices);
 
