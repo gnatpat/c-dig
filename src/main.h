@@ -9,7 +9,10 @@
 #include <stb_image.h>
 
 #include "defs.h"
+
 #include "dig_math.h"
 #include "models.h"
+#include "opengl.h"
 #include "shaders.h"
+#include "textures.h"
 #include "utils.h"

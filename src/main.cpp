@@ -4,90 +4,50 @@
 #include <stb_image.h>
 
 #include "models.cpp"
+#include "opengl.cpp"
 #include "shaders.cpp"
+#include "textures.cpp"
 #include "utils.cpp"
-
-int SCREEN_WIDTH = 800;
-int SCREEN_HEIGHT = 600;
 
 void initChunk(Chunk* c) {
   for (int x = 0; x < CHUNK_SIZE; x++) {
     for (int y = 0; y < CHUNK_SIZE; y++) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
-        c->blocks[x][y][z].block_shape = CUBE;
+        c->blocks[x][y][z].block_shape = AIR;
       }
     }
   }
-}
+  c->blocks[1][2][1].block_shape = CUBE;
+  c->blocks[0][2][1].block_shape = NEG_X_NEG_Y_SLOPE;
+  c->blocks[2][2][1].block_shape = POS_X_NEG_Y_SLOPE;
+  c->blocks[1][2][0].block_shape = NEG_Z_NEG_Y_SLOPE;
+  c->blocks[1][2][2].block_shape = POS_Z_NEG_Y_SLOPE;
+  c->blocks[2][2][2].block_shape = NEG_NEG_NEG_CORNER;
+  c->blocks[0][2][2].block_shape = POS_NEG_NEG_CORNER;
+  c->blocks[0][2][0].block_shape = POS_NEG_POS_CORNER;
+  c->blocks[2][2][0].block_shape = NEG_NEG_POS_CORNER;
 
-void framebufferSizeCallback(GLFWwindow* window, int width, int height)
-{
-  SCREEN_WIDTH = width;
-  SCREEN_HEIGHT = height;
-  printf("%dx%d\n", SCREEN_WIDTH, SCREEN_HEIGHT);
-  glViewport(0, 0, width, height);
-}
+  c->blocks[0][1][1].block_shape = CUBE;
+  c->blocks[2][1][1].block_shape = CUBE;
+  c->blocks[1][1][0].block_shape = CUBE;
+  c->blocks[1][1][2].block_shape = CUBE;
+  c->blocks[1][1][1].block_shape = CUBE;
+  c->blocks[0][1][0].block_shape = POS_POS_DIAGONAL;
+  c->blocks[2][1][0].block_shape = NEG_POS_DIAGONAL;
+  c->blocks[2][1][2].block_shape = NEG_NEG_DIAGONAL;
+  c->blocks[0][1][2].block_shape = POS_NEG_DIAGONAL;
 
-GLuint loadTexture(const char* filepath) {
-  GLuint texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  // set the texture wrapping/filtering options (on the currently bound texture object)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  // load and generate the texture
-  int width, height, channels;
-  unsigned char *data = stbi_load(filepath, &width, &height, &channels, 0);
-  if (!data) {
-    printf("Failed to load texture.");
-    return 0;
-  }
-  GLenum format;
-  if (channels == 3) {
-    format = GL_RGB;
-  } else {
-    format = GL_RGBA;
-  }
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-  stbi_image_free(data);
-  return texture;
-}
+  c->blocks[1][0][1].block_shape = CUBE;
+  c->blocks[0][0][1].block_shape = NEG_X_POS_Y_SLOPE;
+  c->blocks[2][0][1].block_shape = POS_X_POS_Y_SLOPE;
+  c->blocks[1][0][0].block_shape = NEG_Z_POS_Y_SLOPE;
+  c->blocks[1][0][2].block_shape = POS_Z_POS_Y_SLOPE;
+  c->blocks[2][0][2].block_shape = NEG_POS_NEG_CORNER;
+  c->blocks[0][0][2].block_shape = POS_POS_NEG_CORNER;
+  c->blocks[0][0][0].block_shape = POS_POS_POS_CORNER;
+  c->blocks[2][0][0].block_shape = NEG_POS_POS_CORNER;
 
-bool initOpenGLAndCreateWindow(GLFWwindow** window) {
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
-  if (*window == NULL)
-  {
-      printf("Failed to create GLFW window");
-      glfwTerminate();
-      return false;
-  }
-  glfwMakeContextCurrent(*window);
-
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-  {
-      printf("Failed to initialize GLAD");
-      return false;
-  }    
-
-  glViewport(0, 0, 800, 600);
-  glfwSetFramebufferSizeCallback(*window, framebufferSizeCallback);
-  glfwSwapInterval(0);
-  
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-  printf("%s\n", glGetString(GL_VERSION));
-
-  return true;
+  fillChunkRenderData(c);
 }
 
 int main(void) {
@@ -97,14 +57,9 @@ int main(void) {
     return -1;
   }
 
-  GLuint shader_program = compileShader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
-  if (shader_program == 0) {
-    return -1;
-  }
-  GLuint shader_program_no_texture = compileShader("resources/shaders/shader_no_texture.vs", "resources/shaders/shader_no_texture.fs");
-  if (shader_program_no_texture == 0) {
-    return -1;
-  }
+  GLuint shader_program = compileShaderOrDie("resources/shaders/shader.vs", "resources/shaders/shader.fs");
+  GLuint shader_program_no_texture = compileShaderOrDie("resources/shaders/shader_no_texture.vs",
+                                                        "resources/shaders/shader_no_texture.fs");
 
   GLuint sprite_textures = loadTexture("resources/sprites.png");
   GLuint sprite_vaos[] = { genTexturedGroundedSprite(0) };
@@ -117,16 +72,13 @@ int main(void) {
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initChunk(&game_data->chunk);
 
-  Chunk* chunk = &game_data->chunk;
-  fillChunkRenderData(chunk);
-
-  struct timespec old_time, new_time;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &old_time);
+  float t = 0.0;
 
   int frames = 0;
   float acc = 0;
 
-  float t = 0.0;
+  struct timespec old_time, new_time;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &old_time);
   while(!glfwWindowShouldClose(window))
   {
     clock_gettime(CLOCK_MONOTONIC_RAW, &new_time);
@@ -149,11 +101,11 @@ int main(void) {
 
     // Chunk
     Matrix4x4 model = identity();
-    model *= translate(v3(-(CHUNK_SIZE-1)/2, -(CHUNK_SIZE-1)/2, -(CHUNK_SIZE-1)/2));
+    model *= translate(v3(-(CHUNK_SIZE)/2.0, -(CHUNK_SIZE)/2.0, -(CHUNK_SIZE)/2.0));
     Matrix4x4 view = identity();
     view *= translate(v3(0.0, 0.0, -CHUNK_SIZE - 5.0));
     view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 4);
-    view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
+    view *= rotate(v3(1.0, 1.0, 0.0) * y_rot);
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
     Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
 
@@ -165,7 +117,7 @@ int main(void) {
     transformLocation = glGetUniformLocation(shader_program, "model");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
 
-    ChunkRenderData* render_data = &(chunk->render_data);
+    ChunkRenderData* render_data = &(game_data->chunk.render_data);
     glBindVertexArray(render_data->vao);
     glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
 

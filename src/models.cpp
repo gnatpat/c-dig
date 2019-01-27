@@ -72,6 +72,8 @@ void fillChunkRenderData(Chunk* chunk) {
           case CUBE:
           case NEG_Z_NEG_Y_SLOPE:
           case NEG_Z_POS_Y_SLOPE:
+          case NEG_POS_DIAGONAL:
+          case POS_POS_DIAGONAL:
             if (block_side_occlusion[FULL]) {
               break;
             }
@@ -79,6 +81,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_X_NEG_Y_SLOPE:
+          case NEG_NEG_POS_CORNER:
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
@@ -86,6 +89,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_X_NEG_Y_SLOPE:
+          case POS_NEG_POS_CORNER:
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
@@ -93,6 +97,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_X_POS_Y_SLOPE:
+          case NEG_POS_POS_CORNER:
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
@@ -100,15 +105,22 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_X_POS_Y_SLOPE:
+          case POS_POS_POS_CORNER:
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
             PUSH_TRIANGLE(vertex_cursor, XyZ, XYZ, xYZ, BLUE);
             break;
       
+          case AIR:
           case POS_Z_POS_Y_SLOPE:
           case POS_Z_NEG_Y_SLOPE:
-          case AIR:
+          case NEG_NEG_NEG_CORNER:
+          case POS_NEG_NEG_CORNER:
+          case NEG_POS_NEG_CORNER:
+          case POS_POS_NEG_CORNER:
+          case NEG_NEG_DIAGONAL:
+          case POS_NEG_DIAGONAL:
           case BLOCK_SHAPE_COUNT:
             break;
         }
@@ -121,6 +133,8 @@ void fillChunkRenderData(Chunk* chunk) {
           case CUBE:
           case NEG_X_NEG_Y_SLOPE:
           case NEG_X_POS_Y_SLOPE:
+          case POS_NEG_DIAGONAL:
+          case POS_POS_DIAGONAL:
             if (block_side_occlusion[FULL]) {
               break;
             }
@@ -128,6 +142,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_Z_NEG_Y_SLOPE:
+          case POS_NEG_POS_CORNER:
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
@@ -135,6 +150,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_Z_NEG_Y_SLOPE:
+          case POS_NEG_NEG_CORNER:
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
@@ -142,6 +158,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_Z_POS_Y_SLOPE:
+          case POS_POS_POS_CORNER:
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
@@ -149,15 +166,22 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_Z_POS_Y_SLOPE:
+          case POS_POS_NEG_CORNER:
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
             PUSH_TRIANGLE(vertex_cursor, Xyz, XYz, XYZ, RED);
             break;
       
+          case AIR:
           case POS_X_POS_Y_SLOPE:
           case POS_X_NEG_Y_SLOPE:
-          case AIR:
+          case NEG_NEG_NEG_CORNER:
+          case NEG_NEG_POS_CORNER:
+          case NEG_POS_NEG_CORNER:
+          case NEG_POS_POS_CORNER:
+          case NEG_NEG_DIAGONAL:
+          case NEG_POS_DIAGONAL:
           case BLOCK_SHAPE_COUNT:
             break;
         }
@@ -169,6 +193,8 @@ void fillChunkRenderData(Chunk* chunk) {
           case CUBE:
           case POS_Z_NEG_Y_SLOPE:
           case POS_Z_POS_Y_SLOPE:
+          case NEG_NEG_DIAGONAL:
+          case POS_NEG_DIAGONAL:
             if (block_side_occlusion[FULL]) {
               break;
             }
@@ -176,6 +202,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_X_NEG_Y_SLOPE:
+          case POS_NEG_NEG_CORNER:
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
@@ -183,6 +210,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_X_NEG_Y_SLOPE:
+          case NEG_NEG_NEG_CORNER:
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
@@ -190,6 +218,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_X_POS_Y_SLOPE:
+          case POS_POS_NEG_CORNER:
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
@@ -197,15 +226,22 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_X_POS_Y_SLOPE:
+          case NEG_POS_NEG_CORNER:
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
             PUSH_TRIANGLE(vertex_cursor, xyz, xYz, XYz, BLUE);
             break;
       
+          case AIR:
           case NEG_Z_POS_Y_SLOPE:
           case NEG_Z_NEG_Y_SLOPE:
-          case AIR:
+          case POS_NEG_POS_CORNER:
+          case NEG_NEG_POS_CORNER:
+          case NEG_POS_POS_CORNER:
+          case POS_POS_POS_CORNER:
+          case NEG_POS_DIAGONAL:
+          case POS_POS_DIAGONAL:
           case BLOCK_SHAPE_COUNT:
             break;
         }
@@ -217,6 +253,8 @@ void fillChunkRenderData(Chunk* chunk) {
           case CUBE:
           case POS_X_NEG_Y_SLOPE:
           case POS_X_POS_Y_SLOPE:
+          case NEG_NEG_DIAGONAL:
+          case NEG_POS_DIAGONAL:
             if (block_side_occlusion[FULL]) {
               break;
             }
@@ -224,6 +262,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_Z_NEG_Y_SLOPE:
+          case NEG_NEG_NEG_CORNER:
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
@@ -231,6 +270,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_Z_NEG_Y_SLOPE:
+          case NEG_NEG_POS_CORNER:
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
@@ -238,6 +278,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case POS_Z_POS_Y_SLOPE:
+          case NEG_POS_NEG_CORNER:
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
@@ -245,6 +286,7 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
 
           case NEG_Z_POS_Y_SLOPE:
+          case NEG_POS_POS_CORNER:
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
@@ -254,6 +296,12 @@ void fillChunkRenderData(Chunk* chunk) {
           case NEG_X_POS_Y_SLOPE:
           case NEG_X_NEG_Y_SLOPE:
           case AIR:
+          case POS_NEG_NEG_CORNER:
+          case POS_NEG_POS_CORNER:
+          case POS_POS_NEG_CORNER:
+          case POS_POS_POS_CORNER:
+          case POS_NEG_DIAGONAL:
+          case POS_POS_DIAGONAL:
           case BLOCK_SHAPE_COUNT:
             break;
         }
@@ -273,11 +321,47 @@ void fillChunkRenderData(Chunk* chunk) {
             PUSH_SQUARE(vertex_cursor, xYZ, XYZ, XYz, xYz, GREEN);
             break;
 
+          case NEG_POS_POS_CORNER:
+          case NEG_POS_DIAGONAL:
+            if (block_side_occlusion[BOTTOM_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xYZ, XYZ, xYz, GREEN);
+            break;
+
+          case POS_POS_POS_CORNER:
+          case POS_POS_DIAGONAL:
+            if (block_side_occlusion[BOTTOM_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xYZ, XYZ, XYz, GREEN);
+            break;
+
+          case NEG_POS_NEG_CORNER:
+          case NEG_NEG_DIAGONAL:
+            if (block_side_occlusion[TOP_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xYZ, XYz, xYz, GREEN);
+            break;
+
+          case POS_POS_NEG_CORNER:
+          case POS_NEG_DIAGONAL:
+            if (block_side_occlusion[TOP_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, XYZ, XYz, xYz, GREEN);
+            break;
+
+          case AIR:
           case POS_Z_NEG_Y_SLOPE:
           case POS_X_NEG_Y_SLOPE:
           case NEG_Z_NEG_Y_SLOPE:
           case NEG_X_NEG_Y_SLOPE:
-          case AIR:
+          case POS_NEG_NEG_CORNER:
+          case NEG_NEG_NEG_CORNER:
+          case NEG_NEG_POS_CORNER:
+          case POS_NEG_POS_CORNER:
           case BLOCK_SHAPE_COUNT:
             break;
         }
@@ -298,16 +382,53 @@ void fillChunkRenderData(Chunk* chunk) {
             PUSH_SQUARE(vertex_cursor, xyz, Xyz, XyZ, xyZ, GREEN);
             break;
 
+          case NEG_NEG_NEG_CORNER:
+          case NEG_NEG_DIAGONAL:
+            if (block_side_occlusion[BOTTOM_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyz, Xyz, xyZ, GREEN);
+            break;
+
+          case POS_NEG_NEG_CORNER:
+          case POS_NEG_DIAGONAL:
+            if (block_side_occlusion[BOTTOM_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyz, GREEN);
+            break;
+
+          case NEG_NEG_POS_CORNER:
+          case NEG_POS_DIAGONAL:
+            if (block_side_occlusion[TOP_LEFT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, xyz, XyZ, xyZ, GREEN);
+            break;
+
+          case POS_NEG_POS_CORNER:
+          case POS_POS_DIAGONAL:
+            if (block_side_occlusion[TOP_RIGHT]) {
+              break;
+            }
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyZ, GREEN);
+            break;
+
+          case AIR:
           case POS_X_POS_Y_SLOPE:
           case POS_Z_POS_Y_SLOPE:
           case NEG_Z_POS_Y_SLOPE:
           case NEG_X_POS_Y_SLOPE:
-          case AIR:
+          case NEG_POS_NEG_CORNER:
+          case POS_POS_NEG_CORNER:
+          case NEG_POS_POS_CORNER:
+          case POS_POS_POS_CORNER:
           case BLOCK_SHAPE_COUNT:
             break;
         }
 
         // SLOPE
+        continue;
         switch(block_shape) {
           case POS_Z_NEG_Y_SLOPE:
             PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYz, xYz, YELLOW);
@@ -334,8 +455,37 @@ void fillChunkRenderData(Chunk* chunk) {
             PUSH_SQUARE(vertex_cursor, XyZ, xYZ, xYz, Xyz, YELLOW);
             break;
 
-          case CUBE:
+          case POS_NEG_NEG_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, XYz, xyz, XyZ, YELLOW);
+            break;
+          case NEG_NEG_NEG_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, xYz, xyZ, Xyz, YELLOW);
+            break;
+          case NEG_NEG_POS_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, xYZ, XyZ, xyz, YELLOW);
+            break;
+          case POS_NEG_POS_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, XYZ, Xyz, xyZ, YELLOW);
+            break;
+          case POS_POS_NEG_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XYZ, xYz, YELLOW);
+            break;
+          case NEG_POS_NEG_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, xyz, XYz, xYZ, YELLOW);
+            break;
+          case NEG_POS_POS_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, xyZ, xYz, XYZ, YELLOW);
+            break;
+          case POS_POS_POS_CORNER:
+            PUSH_TRIANGLE(vertex_cursor, XyZ, xYZ, XYz, YELLOW);
+            break;
+
           case AIR:
+          case CUBE:
+          case POS_NEG_DIAGONAL:
+          case NEG_NEG_DIAGONAL:
+          case NEG_POS_DIAGONAL:
+          case POS_POS_DIAGONAL:
           case BLOCK_SHAPE_COUNT:
             break;
         }

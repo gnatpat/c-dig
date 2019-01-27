@@ -201,6 +201,17 @@ inline Matrix4x4 & operator/=(Matrix4x4 &m, float a) {
   return m;
 }
 
+inline V3 operator*(Matrix4x4 m, V3 v) {
+  float v4[4] = { v.v[0], v.v[1], v.v[2], 1 };
+  float result[4] = { 0.0, 0.0, 0.0, 0.0 };
+  for(int y = 0; y < 4; y++) {
+    for(int x = 0; x < 4; x++) {
+      result[y] += v4[x] * m.v[y][x];
+    }
+  }
+  return {result[0], result[1], result[2]};
+}
+
 // transformations 
 
 inline Matrix4x4 scale(V3 v) {

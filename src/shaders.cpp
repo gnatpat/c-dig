@@ -2,7 +2,6 @@ GLuint compileShaderFile(const char* path, const GLenum shaderType) {
   FILE *fp = fopen(path, "r");
   if (fp == NULL) {
     printf("Couldn't open %s.\n", path);
-    return 0;
   }
   GLuint shader = glCreateShader(shaderType);
 
@@ -62,3 +61,10 @@ GLuint compileShader(const char* vertex_path, const char* fragment_path) {
   return shader;
 }
 
+GLuint compileShaderOrDie(const char* vertex_path, const char* fragment_path) {
+  GLuint shader = compileShader(vertex_path, fragment_path);
+  if (shader == 0) {
+    exit(1);
+  }
+  return shader;
+}

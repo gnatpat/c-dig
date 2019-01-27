@@ -1,0 +1,1 @@
+bool initOpenGLAndCreateWindow(GLFWwindow** window);

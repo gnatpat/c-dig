@@ -1,10 +1,14 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 
-const int CHUNK_SIZE = 16;
+// TODO: move these into some contstants object?
+int SCREEN_WIDTH = 800;
+int SCREEN_HEIGHT = 600;
+
+const int CHUNK_SIZE = 1;
 
 union Matrix4x4 {
   float seq[16];
-  // this is v[row][column] (row major?)
+  // this is v[row][column] (row major?) (so v[y][x])
   float v[4][4];
 };
 
@@ -114,14 +118,18 @@ enum BlockShape {
   POS_X_POS_Y_SLOPE,
   NEG_Z_POS_Y_SLOPE,
   NEG_X_POS_Y_SLOPE,
-//  NEG_NEG_NEG_CORNER,
-//  POS_NEG_NEG_CORNER,
-//  NEG_POS_NEG_CORNER,
-//  NEG_NEG_POS_CORNER,
-//  POS_POS_NEG_CORNER,
-//  NEG_POS_POS_CORNER,
-//  POS_NEG_POS_CORNER,
-//  POS_POS_POS_CORNER,
+  POS_NEG_NEG_CORNER,
+  NEG_NEG_NEG_CORNER,
+  NEG_NEG_POS_CORNER,
+  POS_NEG_POS_CORNER,
+  POS_POS_NEG_CORNER,
+  NEG_POS_NEG_CORNER,
+  NEG_POS_POS_CORNER,
+  POS_POS_POS_CORNER,
+  POS_NEG_DIAGONAL,
+  NEG_NEG_DIAGONAL,
+  NEG_POS_DIAGONAL,
+  POS_POS_DIAGONAL,
 
   BLOCK_SHAPE_COUNT
 };
@@ -168,6 +176,5 @@ struct GameData {
 };
 
 // Generated from py/gen_face_bitfields.py
-bool BLOCK_SIDE_OCCLUSION_BITFIELD[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, true, true, true, true, false, false, false, false, true, true, true, true, true, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, false, false, true, false, false, true, true, true, true, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, false, false, true, false, false, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, false, false, false, false, false, false, true, false, false, false, true, true, true, true, true, false, false, true, false, false, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false};
-
+bool BLOCK_SIDE_OCCLUSION_BITFIELD[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, false, true, false, false, false, false, false, false, false, false, true, true, true, true, true, false, true, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, true, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, true, true, true, true, true, false, false, true, false, false, true, true, true, true, true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, true, true, true, false, false, false, false, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, true, true, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, true, true, true, false, false, false, false, true, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, true, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, true, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, true, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, true, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, true, false, false, false, false, false, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false, true, false, false, false, false, false, true, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false};
 #pragma GCC diagnostic ignored "-Wpedantic"

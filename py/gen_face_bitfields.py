@@ -21,6 +21,11 @@ class SideOrder(Enum):
 FULL_SIDE = [True] * 5
 EMPTY_SIDE = [False] * 5
 
+TOP_RIGHT = [False, True, False, False, False]
+TOP_LEFT = [False, False, True, False, False]
+BOTTOM_LEFT = [False, False, False, True, False]
+BOTTOM_RIGHT = [False, False, False, False, True]
+
 def air():
     return [False] * 30
 
@@ -30,14 +35,13 @@ def cube():
 def up_slopes():
     blocks = {}
     xz_directions = [SideOrder(i) for i in range(4)] * 2
-    print(xz_directions)
     for direction in range(4):
         blocks[direction] = {SideOrder.NEG_Y: EMPTY_SIDE,
                              SideOrder.POS_Y: FULL_SIDE,
                              xz_directions[direction    ]: EMPTY_SIDE,
-                             xz_directions[direction + 1]: [False, True, False, False, False],
+                             xz_directions[direction + 1]: BOTTOM_LEFT,
                              xz_directions[direction + 2]: FULL_SIDE, 
-                             xz_directions[direction + 3]: [False, False, True, False, False]}
+                             xz_directions[direction + 3]: BOTTOM_RIGHT}
     return [blocks[direction][side][i] for direction in range(4) for side in SideOrder for i in range(5)]
 
 def down_slopes():
@@ -47,14 +51,67 @@ def down_slopes():
         blocks[direction] = {SideOrder.POS_Y: EMPTY_SIDE,
                              SideOrder.NEG_Y: FULL_SIDE,
                              xz_directions[direction    ]: EMPTY_SIDE,
-                             xz_directions[direction + 1]: [False, False, False, False, True],
+                             xz_directions[direction + 1]: TOP_LEFT,
                              xz_directions[direction + 2]: FULL_SIDE, 
-                             xz_directions[direction + 3]: [False, False, False, True, False]}
+                             xz_directions[direction + 3]: TOP_RIGHT}
     return [blocks[direction][side][i] for direction in range(4) for side in SideOrder for i in range(5)]
 
-all_bits = air() + cube() + down_slopes() + up_slopes()
-print(all_bits)
-print("Expected 10 * 6 * 5 = 300")
+
+class CornerOrder(Enum):
+    POS_NEG = 0
+    NEG_NEG = 1
+    NEG_POS = 2
+    POS_POS = 3
+
+
+def down_corner_slopes():
+    blocks = {}
+    xz_directions = [SideOrder(i) for i in range(4)] * 2
+    for direction in range(4):
+        bottom = [False] * 5
+        bottom[(3-((direction + 3) % 4)) + 1] = True
+        blocks[direction] = {SideOrder.POS_Y: EMPTY_SIDE,
+                             SideOrder.NEG_Y: bottom,
+                             xz_directions[direction    ]: EMPTY_SIDE,
+                             xz_directions[direction + 1]: BOTTOM_LEFT,
+                             xz_directions[direction + 2]: BOTTOM_RIGHT, 
+                             xz_directions[direction + 3]: EMPTY_SIDE}
+    return [blocks[direction][side][i] for direction in range(4) for side in SideOrder for i in range(5)]
+
+
+def up_corner_slopes():
+    blocks = {}
+    xz_directions = [SideOrder(i) for i in range(4)] * 2
+    for direction in range(4):
+        bottom = [False] * 5
+        bottom[(3-direction) + 1] = True
+        blocks[direction] = {SideOrder.POS_Y: EMPTY_SIDE,
+                             SideOrder.NEG_Y: bottom,
+                             xz_directions[direction    ]: EMPTY_SIDE,
+                             xz_directions[direction + 1]: TOP_LEFT,
+                             xz_directions[direction + 2]: TOP_RIGHT, 
+                             xz_directions[direction + 3]: EMPTY_SIDE}
+    return [blocks[direction][side][i] for direction in range(4) for side in SideOrder for i in range(5)]
+
+def diagonals():
+    blocks = {}
+    xz_directions = [SideOrder(i) for i in range(4)] * 2
+    for direction in range(4):
+        bottom = [False] * 5
+        bottom[(3 - ((direction + 3) % 4)) + 1] = True
+        top = [False] * 5
+        top[(3-direction) + 1] = True
+        blocks[direction] = {SideOrder.POS_Y: top,
+                             SideOrder.NEG_Y: bottom,
+                             xz_directions[direction    ]: EMPTY_SIDE,
+                             xz_directions[direction + 1]: FULL_SIDE,
+                             xz_directions[direction + 2]: FULL_SIDE,
+                             xz_directions[direction + 3]: EMPTY_SIDE}
+    return [blocks[direction][side][i] for direction in range(4) for side in SideOrder for i in range(5)]
+
+
+all_bits = air() + cube() + down_slopes() + up_slopes() + down_corner_slopes() + up_corner_slopes() + diagonals()
+print('bool BLOCK_SIDE_OCCLUSION_BITFIELD[] = {' + ', '.join('true' if bit else 'false' for bit in all_bits) + '};')
+print("Expected " + str(22 * 6 * 5))
 print(len(all_bits))
-print(all_bits[5 * 30 + 0 * 5 + 4])
 
