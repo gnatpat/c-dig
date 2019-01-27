@@ -91,12 +91,12 @@ int main(void) {
   GLuint shader_program_no_texture = compileShaderOrDie("resources/shaders/shader_no_texture.vs",
                                                         "resources/shaders/shader_no_texture.fs");
 
-  BlockShape shape = CUBE;
   Chunk c;
+  BlockShape shape = CUBE;
   c.blocks[0][0][0].block_shape = shape;
   fillChunkRenderData(&c);
-
   ChunkRenderData rd = sideOcclusionBuffer(shape);
+  bool down = false;
 
   float t = 0.0;
 
@@ -120,6 +120,19 @@ int main(void) {
     }
 
     t += delta;
+
+    bool left = glfwGetKey(window, GLFW_KEY_LEFT);
+    bool right = glfwGetKey(window, GLFW_KEY_RIGHT);
+    if ((left || right) && !down) {
+      int diff;
+      if (left) diff = -1;
+      if (right) diff = 1;
+      shape = (BlockShape)(((int) shape + diff + BLOCK_SHAPE_COUNT) % BLOCK_SHAPE_COUNT);
+      c.blocks[0][0][0].block_shape = shape;
+      fillChunkRenderData(&c);
+      rd = sideOcclusionBuffer(shape);
+    }
+    down = left || right;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
