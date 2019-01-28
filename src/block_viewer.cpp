@@ -12,7 +12,7 @@
 int rotationFromOcclusion(bool* occlusion) {
   if(occlusion[0]) return 5;
   for (int i = 0; i < 4; i++) {
-    if (occlusion[i]) return i + 1;
+    if (occlusion[i+1]) return i;
   }
   return -1;
 }
@@ -20,10 +20,11 @@ int rotationFromOcclusion(bool* occlusion) {
 float DISTANCE = 1.5;
 V3 BLACK = v3(0, 0, 0);
 ChunkRenderData sideOcclusionBuffer(BlockShape block_shape) {
-  V3 rotations[6] = {v3(0, 0, 0), v3(0, M_PI/2, 0), v3(0, M_PI, 0), v3(0, -M_PI/2, 0), v3(M_PI/2, 0, 0), v3(-M_PI/2, 0, 0)};
+  V3 rotations[6] = {v3(0, 0, 0), v3(0, -M_PI/2, 0), v3(0, M_PI, 0), v3(0, M_PI/2, 0), v3(-M_PI/2, 0, 0), v3(M_PI/2, 0, 0)};
+  V3 colours[6] = {v3(0, 0, 1), v3(1, 0, 0), v3(1, 1, 0), v3(0, 1, 1), v3(0, 1, 0), v3(1, 0, 1)};
   ChunkVertex vertices[36];
   ChunkVertex* vertex_cursor = vertices;
-  V3 vs[4] = { v3(1, 0, 0), v3(0, 0, 0), v3(1, 1, 0), v3(0, 1, 0) };
+  V3 vs[4] = { v3(1, 0, 0), v3(1, 1, 0), v3(0, 1, 0), v3(0, 0, 0) };
   for(int i = 0; i < 6; i++) { 
     bool* occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (block_shape * 30 + i * 5);
     int rotation = rotationFromOcclusion(occlusion);
@@ -33,7 +34,7 @@ ChunkRenderData sideOcclusionBuffer(BlockShape block_shape) {
     Matrix4x4 m = identity();
     m *= translate(v3(0.5, 0.5, 0.5));
     m *= rotate(rotations[i]);
-    m *= translate(v3(0, 0, -DISTANCE));
+    m *= translate(v3(0, 0, DISTANCE));
     m *= rotate(v3(0, 0, 1) * M_PI/2.0 * rotation);
     m *= translate(v3(-0.5, -0.5, 0));
     V3 rotated_vs[4];
@@ -41,23 +42,16 @@ ChunkRenderData sideOcclusionBuffer(BlockShape block_shape) {
     for (int j = 0; j < 4; j++) { 
       rotated_vs[j] = m * rotated_vs[j];
     }
-    if (rotation == 5) {
-      *vertex_cursor = { rotated_vs[0], BLACK };
-      vertex_cursor++;
-      *vertex_cursor = { rotated_vs[1], BLACK };
-      vertex_cursor++;
-      *vertex_cursor = { rotated_vs[2], BLACK };
-      vertex_cursor++;
-      *vertex_cursor = { rotated_vs[2], BLACK };
-      vertex_cursor++;
-      *vertex_cursor = { rotated_vs[1], BLACK };
-      vertex_cursor++;
-      *vertex_cursor = { rotated_vs[3], BLACK };
-      vertex_cursor++;
-      continue;
-    }
     for (int k = 0; k < 3; k++) {
-      *vertex_cursor = { rotated_vs[k], BLACK };
+      *vertex_cursor = { rotated_vs[k], colours[i] };
+      vertex_cursor++;
+    }
+    if (rotation == 5) {
+      *vertex_cursor = { rotated_vs[3], colours[i] };
+      vertex_cursor++;
+      *vertex_cursor = { rotated_vs[0], colours[i] };
+      vertex_cursor++;
+      *vertex_cursor = { rotated_vs[2], colours[i] };
       vertex_cursor++;
     }
   }
@@ -144,7 +138,7 @@ int main(void) {
     Matrix4x4 view = identity();
     view *= translate(v3(0.0, 0.0, -CHUNK_SIZE - 5.0));
     view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 4);
-    view *= rotate(v3(1.0, 1.0, 0.0) * y_rot);
+    view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
     Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
 

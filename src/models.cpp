@@ -33,7 +33,9 @@ inline BlockShape getBlockShapeAt(Chunk* c, int x, int y, int z) {
 V3 RED = v3(1, 0, 0);
 V3 GREEN = v3(0, 1, 0);
 V3 BLUE = v3(0, 0, 1);
-V3 YELLOW = v3(0.8, 0.8, 0);
+V3 YELLOW = v3(1, 1, 0);
+V3 MAGENTA = v3(1, 0, 1);
+V3 CYAN = v3(0, 1, 1);
 
 void fillChunkRenderData(Chunk* chunk) {
   struct timespec start_time, end_time;
@@ -198,7 +200,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYz, Xyz, BLUE);
+            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYz, Xyz, YELLOW);
             break;
 
           case NEG_X_NEG_Y_SLOPE:
@@ -206,7 +208,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, XYz, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, XYz, YELLOW);
             break;
 
           case POS_X_NEG_Y_SLOPE:
@@ -214,7 +216,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, xYz, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, xYz, YELLOW);
             break;
 
           case NEG_X_POS_Y_SLOPE:
@@ -222,7 +224,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, xYz, XYz, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xYz, XYz, YELLOW);
             break;
 
           case POS_X_POS_Y_SLOPE:
@@ -230,7 +232,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xYz, XYz, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xYz, XYz, YELLOW);
             break;
       
           case AIR:
@@ -258,7 +260,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, xyz, xyZ, xYZ, xYz, RED);
+            PUSH_SQUARE(vertex_cursor, xyz, xyZ, xYZ, xYz, CYAN);
             break;
 
           case POS_Z_NEG_Y_SLOPE:
@@ -266,7 +268,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYz, RED);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYz, CYAN);
             break;
 
           case NEG_Z_NEG_Y_SLOPE:
@@ -274,7 +276,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYZ, RED);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYZ, CYAN);
             break;
 
           case POS_Z_POS_Y_SLOPE:
@@ -282,7 +284,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xYZ, xYz, RED);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xYZ, xYz, CYAN);
             break;
 
           case NEG_Z_POS_Y_SLOPE:
@@ -290,7 +292,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyZ, xYZ, xYz, RED);
+            PUSH_TRIANGLE(vertex_cursor, xyZ, xYZ, xYz, CYAN);
             break;
       
           case NEG_X_POS_Y_SLOPE:
@@ -379,7 +381,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, xyz, Xyz, XyZ, xyZ, GREEN);
+            PUSH_SQUARE(vertex_cursor, xyz, Xyz, XyZ, xyZ, MAGENTA);
             break;
 
           case NEG_NEG_NEG_CORNER:
@@ -387,7 +389,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, Xyz, xyZ, GREEN);
+            PUSH_TRIANGLE(vertex_cursor, xyz, Xyz, xyZ, MAGENTA);
             break;
 
           case POS_NEG_NEG_CORNER:
@@ -395,7 +397,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyz, GREEN);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyz, MAGENTA);
             break;
 
           case NEG_NEG_POS_CORNER:
@@ -403,7 +405,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, XyZ, xyZ, GREEN);
+            PUSH_TRIANGLE(vertex_cursor, xyz, XyZ, xyZ, MAGENTA);
             break;
 
           case POS_NEG_POS_CORNER:
@@ -411,7 +413,7 @@ void fillChunkRenderData(Chunk* chunk) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyZ, GREEN);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyZ, MAGENTA);
             break;
 
           case AIR:
