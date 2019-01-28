@@ -26,6 +26,30 @@ TOP_LEFT = [False, False, True, False, False]
 BOTTOM_LEFT = [False, False, False, True, False]
 BOTTOM_RIGHT = [False, False, False, False, True]
 
+def swap_xz(side):
+    if side == TOP_RIGHT:
+        return TOP_LEFT
+    if side == TOP_LEFT:
+        return TOP_RIGHT
+    if side == BOTTOM_LEFT:
+        return BOTTOM_RIGHT
+    if side == BOTTOM_RIGHT:
+        return BOTTOM_LEFT
+    return side
+
+
+def swap_y(side):
+    if side == TOP_RIGHT:
+        return BOTTOM_RIGHT
+    if side == TOP_LEFT:
+        return BOTTOM_LEFT
+    if side == BOTTOM_LEFT:
+        return TOP_LEFT
+    if side == BOTTOM_RIGHT:
+        return TOP_RIGHT
+    return side
+
+
 def air():
     return [False] * 30
 
@@ -113,8 +137,21 @@ def diagonals():
     return [blocks[direction][side][i] for direction in range(4) for side in SideOrder for i in range(5)]
 
 
+def chunk(l, n):
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
 all_bits = air() + cube() + ground_slopes() + ceiling_slopes() + ground_corner_slopes() + ceiling_corner_slopes() + diagonals()
-print('bool BLOCK_SIDE_OCCLUSION_BITFIELD[] = {' + ', '.join('true' if bit else 'false' for bit in all_bits) + '};')
+new_bits = []
+for i, side in enumerate(chunk(all_bits, 5)):
+    print(side)
+    if(i % 6 < 4):
+        new_bits.extend(swap_xz(side))
+    else:
+        new_bits.extend(swap_y(side))
+
+print('bool BLOCK_SIDE_OCCLUSION_BITFIELD[] = {' + ', '.join('true' if bit else 'false' for bit in new_bits) + '};')
 print("Expected " + str(22 * 6 * 5))
 print(len(all_bits))
 

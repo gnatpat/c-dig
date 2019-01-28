@@ -1,0 +1,1 @@
+void fillChunkRenderData(Chunk* chunk);

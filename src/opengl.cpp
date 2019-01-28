@@ -32,7 +32,7 @@ bool initOpenGLAndCreateWindow(GLFWwindow** window) {
   glfwSwapInterval(0);
   
   glEnable(GL_DEPTH_TEST);
-  //glEnable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
 
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 

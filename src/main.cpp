@@ -3,6 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "chunk.cpp"
 #include "models.cpp"
 #include "opengl.cpp"
 #include "shaders.cpp"
@@ -105,7 +106,7 @@ int main(void) {
     Matrix4x4 view = identity();
     view *= translate(v3(0.0, 0.0, -CHUNK_SIZE - 5.0));
     view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 4);
-    view *= rotate(v3(1.0, 1.0, 0.0) * y_rot);
+    view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
     Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
 

@@ -20,7 +20,7 @@ int rotationFromOcclusion(bool* occlusion) {
 float DISTANCE = 1.5;
 V3 BLACK = v3(0, 0, 0);
 ChunkRenderData sideOcclusionBuffer(BlockShape block_shape) {
-  V3 rotations[6] = {v3(0, 0, 0), v3(0, -M_PI/2, 0), v3(0, M_PI, 0), v3(0, M_PI/2, 0), v3(-M_PI/2, 0, 0), v3(M_PI/2, 0, 0)};
+  V3 rotations[6] = {v3(0, M_PI, 0), v3(0, M_PI/2, 0), v3(0, 0, 0), v3(0, -M_PI/2, 0), v3(M_PI/2, 0, 0), v3(-M_PI/2, 0, 0)};
   V3 colours[6] = {v3(0, 0, 1), v3(1, 0, 0), v3(1, 1, 0), v3(0, 1, 1), v3(0, 1, 0), v3(1, 0, 1)};
   ChunkVertex vertices[36];
   ChunkVertex* vertex_cursor = vertices;
@@ -34,7 +34,7 @@ ChunkRenderData sideOcclusionBuffer(BlockShape block_shape) {
     Matrix4x4 m = identity();
     m *= translate(v3(0.5, 0.5, 0.5));
     m *= rotate(rotations[i]);
-    m *= translate(v3(0, 0, DISTANCE));
+    m *= translate(v3(0, 0, -DISTANCE));
     m *= rotate(v3(0, 0, 1) * M_PI/2.0 * rotation);
     m *= translate(v3(-0.5, -0.5, 0));
     V3 rotated_vs[4];

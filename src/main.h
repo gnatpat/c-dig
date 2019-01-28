@@ -10,6 +10,7 @@
 
 #include "defs.h"
 
+#include "chunk.h"
 #include "dig_math.h"
 #include "models.h"
 #include "opengl.h"
