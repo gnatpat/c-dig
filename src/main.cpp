@@ -65,10 +65,7 @@ int main(void) {
   GLuint sprite_textures = loadTexture("resources/sprites.png");
   GLuint sprite_vaos[] = { genTexturedGroundedSprite(0) };
 
-  Sprite sprites[] = { { { 0.5, CHUNK_SIZE/2.0, -0.5 }, 0 },
-                       { { 4.5, CHUNK_SIZE/2.0, 7.5 }, 0 },
-                       { { -6.5, CHUNK_SIZE/2.0, -2.5 }, 0 } };
-
+  Sprite sprites[] = { { { 1.0, 3.0, 1.0 }, 0 } };
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initChunk(&game_data->chunk);
@@ -102,11 +99,11 @@ int main(void) {
 
     // Chunk
     Matrix4x4 model = identity();
-    model *= translate(v3(-(CHUNK_SIZE)/2.0, -(CHUNK_SIZE)/2.0, -(CHUNK_SIZE)/2.0));
     Matrix4x4 view = identity();
     view *= translate(v3(0.0, 0.0, -CHUNK_SIZE - 5.0));
     view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 4);
     view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
+    view *= translate(v3(-CHUNK_SIZE/2.0, -CHUNK_SIZE/2.0, -CHUNK_SIZE/2.0));
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
     Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
 
