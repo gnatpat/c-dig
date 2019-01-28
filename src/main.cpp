@@ -10,47 +10,6 @@
 #include "textures.cpp"
 #include "utils.cpp"
 
-void initChunk(Chunk* c) {
-  for (int x = 0; x < CHUNK_SIZE; x++) {
-    for (int y = 0; y < CHUNK_SIZE; y++) {
-      for (int z = 0; z < CHUNK_SIZE; z++) {
-        c->blocks[x][y][z].block_shape = AIR;
-      }
-    }
-  }
-  c->blocks[1][2][1].block_shape = CUBE;
-  c->blocks[0][2][1].block_shape = NEG_X_NEG_Y_SLOPE;
-  c->blocks[2][2][1].block_shape = POS_X_NEG_Y_SLOPE;
-  c->blocks[1][2][0].block_shape = NEG_Z_NEG_Y_SLOPE;
-  c->blocks[1][2][2].block_shape = POS_Z_NEG_Y_SLOPE;
-  c->blocks[2][2][2].block_shape = NEG_NEG_NEG_CORNER;
-  c->blocks[0][2][2].block_shape = POS_NEG_NEG_CORNER;
-  c->blocks[0][2][0].block_shape = POS_NEG_POS_CORNER;
-  c->blocks[2][2][0].block_shape = NEG_NEG_POS_CORNER;
-
-  c->blocks[0][1][1].block_shape = CUBE;
-  c->blocks[2][1][1].block_shape = CUBE;
-  c->blocks[1][1][0].block_shape = CUBE;
-  c->blocks[1][1][2].block_shape = CUBE;
-  c->blocks[1][1][1].block_shape = CUBE;
-  c->blocks[0][1][0].block_shape = POS_POS_DIAGONAL;
-  c->blocks[2][1][0].block_shape = NEG_POS_DIAGONAL;
-  c->blocks[2][1][2].block_shape = NEG_NEG_DIAGONAL;
-  c->blocks[0][1][2].block_shape = POS_NEG_DIAGONAL;
-
-  c->blocks[1][0][1].block_shape = CUBE;
-  c->blocks[0][0][1].block_shape = NEG_X_POS_Y_SLOPE;
-  c->blocks[2][0][1].block_shape = POS_X_POS_Y_SLOPE;
-  c->blocks[1][0][0].block_shape = NEG_Z_POS_Y_SLOPE;
-  c->blocks[1][0][2].block_shape = POS_Z_POS_Y_SLOPE;
-  c->blocks[2][0][2].block_shape = NEG_POS_NEG_CORNER;
-  c->blocks[0][0][2].block_shape = POS_POS_NEG_CORNER;
-  c->blocks[0][0][0].block_shape = POS_POS_POS_CORNER;
-  c->blocks[2][0][0].block_shape = NEG_POS_POS_CORNER;
-
-  fillChunkRenderData(c);
-}
-
 int main(void) {
   GLFWwindow* window;
   bool success = initOpenGLAndCreateWindow(&window);
@@ -68,7 +27,7 @@ int main(void) {
   Sprite sprites[] = { { { 1.0, 3.0, 1.0 }, 0 } };
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
-  initChunk(&game_data->chunk);
+  initSphereChunk(&game_data->chunk);
 
   float t = 0.0;
 
