@@ -303,9 +303,9 @@ inline V3 & operator+=(V3 &v, V3 u) {
 inline V3 operator-(V3 v, V3 u) {
   V3 result;
 
-  result.x = u.x - v.x;
-  result.y = u.y - v.y;
-  result.z = u.z - v.z;
+  result.x = v.x - u.x;
+  result.y = v.y - u.y;
+  result.z = v.z - u.z;
   
   return result;
 }
@@ -417,6 +417,172 @@ inline float len(V3 v) {
 
 inline V3 cross(V3 a, V3 b) {
   return v3(a.y * b.z - a.z * b.y,
+            a.z * b.x - a.x * b.z,
+            a.x * b.y - a.y * b.x);
+}
+
+/***************\
+ * VECTOR3 INT *
+\***************/
+
+inline V3i v3i(int x, int y, int z) {
+  V3i result;
+
+  result.x = x;
+  result.y = y;
+  result.z = z;
+
+  return result;
+}
+
+inline void printV3i(V3i v) {
+  printf("[ %d, %d, %d ]\n", v.x, v.y, v.z);
+}
+
+// operators
+
+inline V3i operator+(V3i v, V3i u) {
+  V3i result;
+
+  result.x = u.x + v.x;
+  result.y = u.y + v.y;
+  result.z = u.z + v.z;
+  
+  return result;
+}
+
+inline V3i & operator+=(V3i &v, V3i u) {
+  v = u + v;
+  return v;
+}
+
+inline V3i operator-(V3i v, V3i u) {
+  V3i result;
+
+  result.x = v.x - u.x;
+  result.y = v.y - u.y;
+  result.z = v.z - u.z;
+  
+  return result;
+}
+
+inline V3i & operator-=(V3i &v, V3i u) {
+  v = u - v;
+  return v;
+}
+
+inline V3i operator-(V3i v) {
+  V3i result;
+  result.x = -v.x;
+  result.y = -v.y;
+  result.z = -v.z;
+
+  return result;
+}
+
+// V3i and int operations
+
+inline V3i operator+(int a, V3i v) {
+  V3i result;
+
+  result.x = a + v.x;
+  result.y = a + v.y;
+  result.z = a + v.z;
+  
+  return result;
+}
+
+inline V3i operator+(V3i v, int a) {
+  return a + v;
+}
+
+inline V3i & operator+=(V3i &v, int a) {
+  v = a + v;
+  return v;
+}
+
+inline V3i operator-(V3i v, int a) {
+  V3i result;
+
+  result.x = v.x - a ;
+  result.y = v.y - a;
+  result.z = v.z - a;
+  
+  return result;
+}
+
+inline V3i & operator-=(V3i &v, int a) {
+  v = v - a;
+  return v;
+}
+
+inline V3i operator*(int a, V3i v) {
+  V3i result;
+
+  result.x = a * v.x;
+  result.y = a * v.y;
+  result.z = a * v.z;
+  
+  return result;
+}
+
+inline V3i operator*(V3i v, int a) {
+  return a * v;
+}
+
+inline V3i & operator*=(V3i &v, int a) {
+  v = a * v;
+  return v;
+}
+
+inline V3i operator/(V3i v, int a) {
+  V3i result;
+
+  result.x = v.x / a ;
+  result.y = v.y / a;
+  result.z = v.z / a;
+  
+  return result;
+}
+
+inline V3i & operator/=(V3i &v, int a) {
+  v = v / a;
+  return v;
+}
+
+inline V3i operator%(V3i v, int a) {
+  V3i result;
+
+  result.x = v.x % a;
+  result.y = v.y % a;
+  result.z = v.z % a;
+  
+  return result;
+}
+
+// scalar
+
+inline int inner(V3i v, V3i u) {
+  int result = v.x * u.x + v.y * u.y + v.z * u.z;
+  return result;
+}
+
+inline int dot(V3i v, V3i u) {
+  return inner(v, u);
+}
+
+inline int lenSq(V3i v) {
+  return inner(v, v);
+}
+
+inline int len(V3i v) {
+  return sqrt(lenSq(v));
+}
+
+// vector vector
+
+inline V3i cross(V3i a, V3i b) {
+  return v3i(a.y * b.z - a.z * b.y,
             a.z * b.x - a.x * b.z,
             a.x * b.y - a.y * b.x);
 }

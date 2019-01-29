@@ -9,17 +9,7 @@
 #include "shaders.cpp"
 #include "textures.cpp"
 #include "utils.cpp"
-
-void initChunk(Chunk* c, BlockShape shape) {
-  for(int x = 0; x < CHUNK_SIZE; x++) {
-    for(int y = 0; y < CHUNK_SIZE; y++) {
-      for(int z = 0; z < CHUNK_SIZE; z++) {
-        c->blocks[x][y][z].block_shape = shape;
-      }
-    }
-  }
-  fillChunkRenderData(c);
-}
+#include "world.cpp"
 
 int main(void) {
   GLFWwindow* window;
@@ -38,15 +28,7 @@ int main(void) {
   Sprite sprites[] = { { { 1.0, 3.0, 1.0 }, 0 } };
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
-  for(int x = 0; x < RENDER_DISTANCE; x++) {
-    for(int y = 0; y < RENDER_DISTANCE; y++) {
-      for(int z = 0; z < RENDER_DISTANCE; z++) {
-        BlockShape shape = y > 3 ? AIR : CUBE;
-        initChunk(&game_data->chunks[x * RENDER_DISTANCE * RENDER_DISTANCE + y * RENDER_DISTANCE + z], shape);
-      }
-    }
-  }
-  game_data->centre = v3(0, 0, 0);
+  initWorld(&game_data->loaded_world);
 
   float t = 0.0;
 
@@ -90,15 +72,15 @@ int main(void) {
     transformLocation = glGetUniformLocation(shader_program, "projection");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
 
-    for(int x = 0; x < RENDER_DISTANCE; x++) {
-      for(int y = 0; y < RENDER_DISTANCE; y++) {
-        for(int z = 0; z < RENDER_DISTANCE; z++) {
-          Matrix4x4 model = translate(v3((x - RENDER_DISTANCE/2) * CHUNK_SIZE,
-                                         (y - RENDER_DISTANCE/2) * CHUNK_SIZE,
-                                         (z - RENDER_DISTANCE/2) * CHUNK_SIZE));
+    for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
+      for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
+        for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
+          Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
+                                         (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
+                                         (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
           transformLocation = glGetUniformLocation(shader_program, "model");
           glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
-          ChunkRenderData* render_data = &(game_data->chunks[x * RENDER_DISTANCE * RENDER_DISTANCE + y * RENDER_DISTANCE + z].render_data);
+          ChunkRenderData* render_data = &(getChunkAt(&game_data->loaded_world, v3i(x, y, z))->render_data);
           glBindVertexArray(render_data->vao);
           glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
         }

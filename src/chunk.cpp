@@ -14,18 +14,15 @@ V3 MAGENTA = v3(1, 0, 1);
 V3 CYAN = v3(0, 1, 1);
 
 
-inline BlockShape getBlockShapeAt(Chunk* c, int x, int y, int z) {
-  if (x < 0 || y < 0 || z < 0 || x >= CHUNK_SIZE || y >= CHUNK_SIZE || z >= CHUNK_SIZE) {
-    return AIR;
-  }
-  return c->blocks[x][y][z].block_shape;
+inline BlockShape getBlockShapeAt(LoadedWorld* w, Chunk* c, int x, int y, int z) {
+  return getBlockAt(w, c->origin + v3i(x, y, z)).block_shape;
 }
 
-
-void fillChunkRenderData(Chunk* chunk) {
+void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
   struct timespec start_time, end_time;
   float delta;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+  printf("Creating render data for chunk (%d, %d, %d)\n", chunk->origin.x, chunk->origin.y, chunk->origin.z);
   printf("Allocating space for %d vertices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6);
   ChunkVertex* vertices = (ChunkVertex*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6 * sizeof(ChunkVertex));
   ChunkVertex* vertex_cursor = vertices;
@@ -54,7 +51,7 @@ void fillChunkRenderData(Chunk* chunk) {
 
         // POS Z
         opposite_side = NEG_Z;
-        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y, z+1) * 30 + opposite_side * 5);
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(world, chunk, x, y, z+1) * 30 + opposite_side * 5);
         switch(block_shape) {
           case CUBE:
           case NEG_Z_NEG_Y_SLOPE:
@@ -115,7 +112,7 @@ void fillChunkRenderData(Chunk* chunk) {
 
         // POS X
         opposite_side = NEG_X;
-        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x+1, y, z) * 30 + opposite_side * 5);
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(world, chunk, x+1, y, z) * 30 + opposite_side * 5);
         switch(block_shape) {
           case CUBE:
           case NEG_X_NEG_Y_SLOPE:
@@ -175,7 +172,7 @@ void fillChunkRenderData(Chunk* chunk) {
 
         // NEG Z
         opposite_side = POS_Z;
-        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y, z-1) * 30 + opposite_side * 5);
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(world, chunk, x, y, z-1) * 30 + opposite_side * 5);
         switch(block_shape) {
           case CUBE:
           case POS_Z_NEG_Y_SLOPE:
@@ -235,7 +232,7 @@ void fillChunkRenderData(Chunk* chunk) {
         
         // NEG X
         opposite_side = POS_X;
-        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x-1, y, z) * 30 + opposite_side * 5);
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(world, chunk, x-1, y, z) * 30 + opposite_side * 5);
         switch(block_shape) {
           case CUBE:
           case POS_X_NEG_Y_SLOPE:
@@ -295,7 +292,7 @@ void fillChunkRenderData(Chunk* chunk) {
         
         // POS Y
         opposite_side = NEG_Y;
-        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y+1, z) * 30 + opposite_side * 5);
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(world, chunk, x, y+1, z) * 30 + opposite_side * 5);
         switch(block_shape) {
           case CUBE:
           case POS_X_POS_Y_SLOPE:
@@ -356,7 +353,7 @@ void fillChunkRenderData(Chunk* chunk) {
 
         // NEG Y
         opposite_side = POS_Y;
-        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(chunk, x, y-1, z) * 30 + opposite_side * 5);
+        block_side_occlusion = BLOCK_SIDE_OCCLUSION_BITFIELD + (getBlockShapeAt(world, chunk, x, y-1, z) * 30 + opposite_side * 5);
         switch(block_shape) {
           case CUBE:
           case POS_Z_NEG_Y_SLOPE:
@@ -466,8 +463,6 @@ void fillChunkRenderData(Chunk* chunk) {
             PUSH_TRIANGLE(vertex_cursor, XyZ, xYZ, XYz, YELLOW);
             break;
 
-          case AIR:
-          case CUBE:
           case POS_NEG_DIAGONAL:
             PUSH_SQUARE(vertex_cursor, XyZ, XYZ, xYz, xyz, YELLOW);
             break;
@@ -479,6 +474,8 @@ void fillChunkRenderData(Chunk* chunk) {
             break;
           case POS_POS_DIAGONAL:
             PUSH_SQUARE(vertex_cursor, xyZ, xYZ, XYz, Xyz, YELLOW);
+          case AIR:
+          case CUBE:
           case BLOCK_SHAPE_COUNT:
             break;
         }
@@ -548,6 +545,14 @@ void initSphereChunk(Chunk* c) {
   c->blocks[0][0][2].block_shape = POS_POS_NEG_CORNER;
   c->blocks[0][0][0].block_shape = POS_POS_POS_CORNER;
   c->blocks[2][0][0].block_shape = NEG_POS_POS_CORNER;
+}
 
-  fillChunkRenderData(c);
+void initChunk(Chunk* c, BlockShape shape) {
+  for(int x = 0; x < CHUNK_SIZE; x++) {
+    for(int y = 0; y < CHUNK_SIZE; y++) {
+      for(int z = 0; z < CHUNK_SIZE; z++) {
+        c->blocks[x][y][z].block_shape = shape;
+      }
+    }
+  }
 }

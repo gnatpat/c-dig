@@ -5,7 +5,7 @@ int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
 const int CHUNK_SIZE = 16;
-const int RENDER_DISTANCE = 4;
+const int LOADED_WORLD_SIZE = 8;
 
 union Matrix4x4 {
   float seq[16];
@@ -20,6 +20,15 @@ union V3 {
     float z;
   };
   float v[3];
+};
+
+union V3i {
+  struct {
+    int x;
+    int y;
+    int z;
+  };
+  int v[3];
 };
 
 union Quaternion {
@@ -63,29 +72,6 @@ enum XZDirection {
 
   XZ_DIRECTION_COUNT
 };
-
-
-// Oriented towards the triangle, with y-axis positive being up if possible, else x axis pointing right.
-//enum TriangleRotation {
-//  TOP_RIGHT,
-//  TOP_LEFT,
-//  BOTTOM_LEFT,
-//  BOTTOM_RIGHT,
-//
-//  TRIANGLE_ROTATION_COUNT
-//};
-//
-//enum FaceType {
-//  EMPTY,
-//  TRIANGLE,
-//  SQUARE
-//};
-//
-//struct Face {
-//  FaceType type;
-//  TriangleRotation triangle_rotation;
-//  V3 vertices[DIRECTION_COUNT][4];
-//};
 
 //enum BlockType {
 //  AIR,
@@ -163,17 +149,16 @@ struct ChunkRenderData {
 struct Chunk {
   Block blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   ChunkRenderData render_data;
+  V3i origin;
 };
 
-//struct Constants {
-//  BlockShapeFlyweights block_shape_flyweights;
-//  Faces faces;
-//  GLuint chunk_element_array_buffer;
-//};
+struct LoadedWorld {
+  Chunk chunks[LOADED_WORLD_SIZE][LOADED_WORLD_SIZE][LOADED_WORLD_SIZE];
+  V3i origin;
+};
 
 struct GameData {
-  Chunk chunks[RENDER_DISTANCE * RENDER_DISTANCE * RENDER_DISTANCE];
-  V3 centre;
+  LoadedWorld loaded_world;
 };
 
 // Generated from py/gen_face_bitfields.py
