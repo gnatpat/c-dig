@@ -4,7 +4,8 @@
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
-const int CHUNK_SIZE = 3;
+const int CHUNK_SIZE = 16;
+const int RENDER_DISTANCE = 4;
 
 union Matrix4x4 {
   float seq[16];
@@ -171,8 +172,8 @@ struct Chunk {
 //};
 
 struct GameData {
-  //Constants constants;
-  Chunk chunk;
+  Chunk chunks[RENDER_DISTANCE * RENDER_DISTANCE * RENDER_DISTANCE];
+  V3 centre;
 };
 
 // Generated from py/gen_face_bitfields.py

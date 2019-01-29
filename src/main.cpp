@@ -10,6 +10,17 @@
 #include "textures.cpp"
 #include "utils.cpp"
 
+void initChunk(Chunk* c, BlockShape shape) {
+  for(int x = 0; x < CHUNK_SIZE; x++) {
+    for(int y = 0; y < CHUNK_SIZE; y++) {
+      for(int z = 0; z < CHUNK_SIZE; z++) {
+        c->blocks[x][y][z].block_shape = shape;
+      }
+    }
+  }
+  fillChunkRenderData(c);
+}
+
 int main(void) {
   GLFWwindow* window;
   bool success = initOpenGLAndCreateWindow(&window);
@@ -27,7 +38,15 @@ int main(void) {
   Sprite sprites[] = { { { 1.0, 3.0, 1.0 }, 0 } };
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
-  initSphereChunk(&game_data->chunk);
+  for(int x = 0; x < RENDER_DISTANCE; x++) {
+    for(int y = 0; y < RENDER_DISTANCE; y++) {
+      for(int z = 0; z < RENDER_DISTANCE; z++) {
+        BlockShape shape = y > 3 ? AIR : CUBE;
+        initChunk(&game_data->chunks[x * RENDER_DISTANCE * RENDER_DISTANCE + y * RENDER_DISTANCE + z], shape);
+      }
+    }
+  }
+  game_data->centre = v3(0, 0, 0);
 
   float t = 0.0;
 
@@ -57,12 +76,11 @@ int main(void) {
     float y_rot = M_PI / 8 * t;
 
     // Chunk
-    Matrix4x4 model = identity();
     Matrix4x4 view = identity();
     view *= translate(v3(0.0, 0.0, -CHUNK_SIZE - 5.0));
     view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 4);
     view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
-    view *= translate(v3(-CHUNK_SIZE/2.0, -CHUNK_SIZE/2.0, -CHUNK_SIZE/2.0));
+    view *= translate(v3(0, -2 * CHUNK_SIZE, 0));
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
     Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
 
@@ -71,12 +89,21 @@ int main(void) {
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
     transformLocation = glGetUniformLocation(shader_program, "projection");
     glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
-    transformLocation = glGetUniformLocation(shader_program, "model");
-    glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
 
-    ChunkRenderData* render_data = &(game_data->chunk.render_data);
-    glBindVertexArray(render_data->vao);
-    glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
+    for(int x = 0; x < RENDER_DISTANCE; x++) {
+      for(int y = 0; y < RENDER_DISTANCE; y++) {
+        for(int z = 0; z < RENDER_DISTANCE; z++) {
+          Matrix4x4 model = translate(v3((x - RENDER_DISTANCE/2) * CHUNK_SIZE,
+                                         (y - RENDER_DISTANCE/2) * CHUNK_SIZE,
+                                         (z - RENDER_DISTANCE/2) * CHUNK_SIZE));
+          transformLocation = glGetUniformLocation(shader_program, "model");
+          glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
+          ChunkRenderData* render_data = &(game_data->chunks[x * RENDER_DISTANCE * RENDER_DISTANCE + y * RENDER_DISTANCE + z].render_data);
+          glBindVertexArray(render_data->vao);
+          glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
+        }
+      }
+    }
 
     // Sprites
     glUseProgram(shader_program);
@@ -89,7 +116,7 @@ int main(void) {
     glBindTexture(GL_TEXTURE_2D, sprite_textures);
     for (unsigned int i = 0; i < (sizeof(sprites) / sizeof(Sprite)); i++) {
       Sprite s = sprites[i];
-      model = identity();
+      Matrix4x4 model = identity();
       model *= translate(s.position);
       model *= rotate(v3(0, 1, 0) * -y_rot);
       transformLocation = glGetUniformLocation(shader_program, "model");
