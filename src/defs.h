@@ -48,6 +48,11 @@ struct Rectangle {
   float top;
 };
 
+struct LinkedList {
+  void* contents;
+  LinkedList* next;
+};
+
 struct Sprite {
   V3 position;
   int index;
@@ -142,6 +147,7 @@ struct Block {
 };
 
 struct ChunkRenderData {
+  bool has_render_data;
   GLuint vao;
   int num_vertices;
 };
@@ -155,6 +161,8 @@ struct Chunk {
 struct LoadedWorld {
   Chunk chunks[LOADED_WORLD_SIZE][LOADED_WORLD_SIZE][LOADED_WORLD_SIZE];
   V3i origin;
+
+  LinkedList* dirty_chunks;
 };
 
 struct GameData {

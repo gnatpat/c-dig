@@ -499,6 +499,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
 
   chunk->render_data.vao = vao;
   chunk->render_data.num_vertices = vertex_count;
+  chunk->render_data.has_render_data = true;
 
   free(vertices);
 

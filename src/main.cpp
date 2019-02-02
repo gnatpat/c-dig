@@ -30,6 +30,8 @@ int main(void) {
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initWorld(&game_data->loaded_world);
 
+  float time_since_last_chunk_cleaned = 0.0;
+
   float t = 0.0;
 
   int frames = 0;
@@ -43,6 +45,7 @@ int main(void) {
     float delta = (new_time.tv_sec - old_time.tv_sec) + (new_time.tv_nsec - old_time.tv_nsec) / 1000000000.0f;
     old_time = new_time;
 
+
     frames += 1;
     acc += delta;
     if (acc >= 2.0) {
@@ -53,6 +56,14 @@ int main(void) {
 
     t += delta;
 
+    // UPDATE
+    time_since_last_chunk_cleaned += delta;
+    //if (time_since_last_chunk_cleaned >= 0.2) {
+      cleanChunkIfNeeded(&game_data->loaded_world);
+    //  time_since_last_chunk_cleaned -= 0.2;
+    //}
+
+    //RENDER
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     float y_rot = M_PI / 8 * t;
@@ -75,12 +86,16 @@ int main(void) {
     for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
       for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
         for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
+          Chunk* c = getChunkAt(&game_data->loaded_world, v3i(x, y, z));
+          if (!c->render_data.has_render_data) {
+            continue;
+          }
           Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
                                          (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
                                          (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
           transformLocation = glGetUniformLocation(shader_program, "model");
           glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
-          ChunkRenderData* render_data = &(getChunkAt(&game_data->loaded_world, v3i(x, y, z))->render_data);
+          ChunkRenderData* render_data = &c->render_data;
           glBindVertexArray(render_data->vao);
           glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
         }
