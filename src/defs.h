@@ -1,11 +1,15 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 
+typedef pthread_t Thread;
+typedef pthread_mutex_t Mutex;
+typedef pthread_cond_t MutexCondition;
+
 // TODO: move these into some contstants object?
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
 const int CHUNK_SIZE = 16;
-const int LOADED_WORLD_SIZE = 8;
+const int LOADED_WORLD_SIZE = 16;
 
 union Matrix4x4 {
   float seq[16];
@@ -49,7 +53,7 @@ struct Rectangle {
 };
 
 struct LinkedList {
-  void* contents;
+  void* content;
   LinkedList* next;
 };
 
@@ -146,10 +150,22 @@ struct Block {
   BlockShape block_shape;
 };
 
+enum ChunkRenderDataState {
+  NO_RENDER_DATA,
+  NOT_PASSED_TO_OPENGL,
+  OKAY,
+
+  CHUNK_RENDER_DATA_STATE_COUNT
+};
+
 struct ChunkRenderData {
-  bool has_render_data;
-  GLuint vao;
+  ChunkRenderDataState state;
+  // num_vertices should be set unless state is NO_RENDER_DATA
   int num_vertices;
+  // Render data should only exist here when state is NOT_PASSED_TO_OPENGL
+  ChunkVertex* vertices;
+  // VAO should only exist when state is DIRTY or CLEAN
+  GLuint vao;
 };
 
 struct Chunk {
@@ -158,11 +174,18 @@ struct Chunk {
   V3i origin;
 };
 
+// TODO - here, State is a struct, but earlier it's an Enum. Not sure how much I like that.
+struct WorldRenderState {
+  LinkedList* dirty_chunks;
+  LinkedList* new_chunks;
+  Mutex new_chunk_lock = PTHREAD_MUTEX_INITIALIZER;
+  MutexCondition new_chunk_condition = PTHREAD_COND_INITIALIZER;
+};
+
 struct LoadedWorld {
   Chunk chunks[LOADED_WORLD_SIZE][LOADED_WORLD_SIZE][LOADED_WORLD_SIZE];
   V3i origin;
-
-  LinkedList* dirty_chunks;
+  WorldRenderState render_state;
 };
 
 struct GameData {

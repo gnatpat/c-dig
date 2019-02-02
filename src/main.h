@@ -1,4 +1,6 @@
+#include <assert.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +17,7 @@
 #include "models.h"
 #include "opengl.h"
 #include "shaders.h"
+#include "pthread_aliases.h"
 #include "textures.h"
 #include "utils.h"
 #include "world.h"

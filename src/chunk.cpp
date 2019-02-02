@@ -19,11 +19,11 @@ inline BlockShape getBlockShapeAt(LoadedWorld* w, Chunk* c, int x, int y, int z)
 }
 
 void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
-  struct timespec start_time, end_time;
-  float delta;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
-  printf("Creating render data for chunk (%d, %d, %d)\n", chunk->origin.x, chunk->origin.y, chunk->origin.z);
-  printf("Allocating space for %d vertices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6);
+  //struct timespec start_time, end_time;
+  //float delta;
+  //clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+  //printf("Creating render data for chunk (%d, %d, %d)\n", chunk->origin.x, chunk->origin.y, chunk->origin.z);
+  //printf("Allocating space for %d vertices.\n", CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6);
   ChunkVertex* vertices = (ChunkVertex*)malloc(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * 6 * 6 * sizeof(ChunkVertex));
   ChunkVertex* vertex_cursor = vertices;
 
@@ -484,28 +484,39 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
   }
   
   ptrdiff_t vertex_count = vertex_cursor - vertices;
-  printf("Vertex count: %ld\n", vertex_count);
+  //printf("Vertex count: %ld\n", vertex_count);
+
+  // TODO: we're using both vertex_count and num_vertices. Use one or the other.
+  chunk->render_data.num_vertices = vertex_count;
+  chunk->render_data.vertices = vertices;
+
+  chunk->render_data.state = NOT_PASSED_TO_OPENGL;
+
+  //clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+  //delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
+  //printf("Chunk Render data generation took %.4f seconds.\n", delta);
+}
+
+void fillChunkVao(Chunk* chunk) {
+  assert(chunk->render_data.state == NOT_PASSED_TO_OPENGL);
+
+  int vertex_count = chunk->render_data.num_vertices;
 
   GLuint vao, vbo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(ChunkVertex), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(ChunkVertex), chunk->render_data.vertices, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
 
   chunk->render_data.vao = vao;
-  chunk->render_data.num_vertices = vertex_count;
-  chunk->render_data.has_render_data = true;
+  chunk->render_data.state = OKAY;
 
-  free(vertices);
-
-  clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-  delta = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0f;
-  printf("Chunk Render data generation took %.4f seconds.\n", delta);
+  free(chunk->render_data.vertices);
 }
 
 

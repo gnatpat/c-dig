@@ -11,6 +11,28 @@
 #include "utils.cpp"
 #include "world.cpp"
 
+void* newChunkRenderMain(void* game_data_as_void_pointer) {
+  GameData* game_data = (GameData*) game_data_as_void_pointer;
+  WorldRenderState* render_state = &game_data->loaded_world.render_state;
+
+  // The Mutex lock/unlock logic in here is a bit hairy. In some ways it's nice - it shows that we only unlock
+  // the mutex whilst rendering the chunk (and implicitly when waiting for the condition), but having the first lock
+  // outside the loop and only unlocking inside two inner loops doesn't seem right, and it takes some thinking to
+  // convince yourself the logic is correct.
+  Mutex* new_chunk_lock = &render_state->new_chunk_lock;
+  lockMutex(new_chunk_lock);
+  while (true) {
+    Chunk* chunk = (Chunk*) removefromLinkedList(&render_state->new_chunks);
+    while (chunk != NULL) {
+      unlockMutex(new_chunk_lock);
+      fillChunkRenderData(chunk, &game_data->loaded_world);
+      lockMutex(new_chunk_lock);
+      chunk = (Chunk*) removefromLinkedList(&render_state->new_chunks);
+    }
+    waitForCondition(&render_state->new_chunk_condition, new_chunk_lock);
+  }
+}
+
 int main(void) {
   GLFWwindow* window;
   bool success = initOpenGLAndCreateWindow(&window);
@@ -30,7 +52,8 @@ int main(void) {
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initWorld(&game_data->loaded_world);
 
-  float time_since_last_chunk_cleaned = 0.0;
+  pthread_t chunk_render_thread;
+  pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
 
   float t = 0.0;
 
@@ -48,7 +71,7 @@ int main(void) {
 
     frames += 1;
     acc += delta;
-    if (acc >= 2.0) {
+    if (acc >= 0.5) {
       printf("fps: %2.2f\n", frames/acc);
       acc = 0;
       frames = 0;
@@ -57,13 +80,8 @@ int main(void) {
     t += delta;
 
     // UPDATE
-    time_since_last_chunk_cleaned += delta;
-    //if (time_since_last_chunk_cleaned >= 0.2) {
-      cleanChunkIfNeeded(&game_data->loaded_world);
-    //  time_since_last_chunk_cleaned -= 0.2;
-    //}
 
-    //RENDER
+    // RENDER
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     float y_rot = M_PI / 8 * t;
@@ -87,17 +105,25 @@ int main(void) {
       for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
         for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
           Chunk* c = getChunkAt(&game_data->loaded_world, v3i(x, y, z));
-          if (!c->render_data.has_render_data) {
-            continue;
+          switch (c->render_data.state) {
+            case NO_RENDER_DATA:
+            case CHUNK_RENDER_DATA_STATE_COUNT:
+              break;
+
+            case NOT_PASSED_TO_OPENGL:
+              fillChunkVao(c);
+              // The break here is missing on purpose, so that a Chunk with a new VAO is rendered.
+            case OKAY:
+              Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
+                                             (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
+                                             (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
+              transformLocation = glGetUniformLocation(shader_program, "model");
+              glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
+              ChunkRenderData* render_data = &c->render_data;
+              glBindVertexArray(render_data->vao);
+              glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
+              break;
           }
-          Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                         (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                         (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
-          transformLocation = glGetUniformLocation(shader_program, "model");
-          glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
-          ChunkRenderData* render_data = &c->render_data;
-          glBindVertexArray(render_data->vao);
-          glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
         }
       }
     }

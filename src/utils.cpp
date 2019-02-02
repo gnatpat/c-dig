@@ -20,3 +20,23 @@ void concat(char* s1, char* s2, char* out) {
   memcpy(out, s1, l1);
   memcpy(out + l1, s2, l2 + 1); // +1 for null terminator;
 }
+
+void addToLinkedList(LinkedList** list, void* content) {
+  assert(content != NULL);
+
+  LinkedList* new_node = (LinkedList*)malloc(sizeof(LinkedList));
+  new_node->content = content;
+  new_node->next = *list;
+  *list = new_node;
+}
+
+void* removefromLinkedList(LinkedList** list) {
+  LinkedList* node_to_remove = *list;
+  if (node_to_remove == NULL) {
+    return NULL;
+  }
+  void* content = node_to_remove->content;
+  *list = node_to_remove->next;
+  free(node_to_remove);
+  return content;
+}
