@@ -1,4 +1,4 @@
-Block OOB_BLOCK = { CUBE };
+Block OOB_BLOCK = { AIR};
 
 
 Block getBlockAt(LoadedWorld* world, V3i pos) {
@@ -23,9 +23,7 @@ void initWorld(LoadedWorld* world) {
   for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
     for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
       for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
-        BlockShape shape = y >= LOADED_WORLD_SIZE/2 ? AIR : CUBE;
         Chunk* c = &world->chunks[x][y][z];
-        initChunk(c, shape);
         c->origin = v3i(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
         c->render_data.state = NO_RENDER_DATA;
         addToLinkedList(&world->render_state.new_chunks, c);

@@ -5,6 +5,7 @@
 
 #include "chunk.cpp"
 #include "models.cpp"
+#include "noise.cpp"
 #include "opengl.cpp"
 #include "shaders.cpp"
 #include "textures.cpp"
@@ -25,6 +26,7 @@ void* newChunkRenderMain(void* game_data_as_void_pointer) {
     Chunk* chunk = (Chunk*) removefromLinkedList(&render_state->new_chunks);
     while (chunk != NULL) {
       unlockMutex(new_chunk_lock);
+      initChunk(chunk);
       fillChunkRenderData(chunk, &game_data->loaded_world);
       lockMutex(new_chunk_lock);
       chunk = (Chunk*) removefromLinkedList(&render_state->new_chunks);
@@ -88,12 +90,12 @@ int main(void) {
 
     // Chunk
     Matrix4x4 view = identity();
-    view *= translate(v3(0.0, 0.0, -CHUNK_SIZE - 5.0));
-    view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 4);
+    view *= translate(v3(0.0, 0.0, -CHUNK_SIZE * LOADED_WORLD_SIZE/2));
+    view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 6);
     view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
-    view *= translate(v3(0, -2 * CHUNK_SIZE, 0));
+    //view *= translate(v3(0, -2 * CHUNK_SIZE, 0));
     float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
-    Matrix4x4 projection = perspective_projection(0.1, 100.0, 45.0, ratio);
+    Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
 
     glUseProgram(shader_program_no_texture);
     GLuint transformLocation = glGetUniformLocation(shader_program, "view");

@@ -7,11 +7,12 @@
         PUSH_VERTEX(cursor, v1, colour); PUSH_VERTEX(cursor, v2, colour); PUSH_VERTEX(cursor, v3, colour);
 
 V3 RED = v3(1, 0, 0);
-V3 GREEN = v3(0, 1, 0);
+V3 GREEN = v3(0.05, 0.7, 0);
 V3 BLUE = v3(0, 0, 1);
 V3 YELLOW = v3(1, 1, 0);
 V3 MAGENTA = v3(1, 0, 1);
 V3 CYAN = v3(0, 1, 1);
+V3 BETH = v3(0.26, 0.12, 0.09);
 
 
 inline BlockShape getBlockShapeAt(LoadedWorld* w, Chunk* c, int x, int y, int z) {
@@ -61,7 +62,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYZ, xYZ, BLUE)
+            PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYZ, xYZ, BETH)
             break;
 
           case POS_X_NEG_Y_SLOPE:
@@ -69,7 +70,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyZ, XyZ, xYZ, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, xyZ, XyZ, xYZ, BETH);
             break;
 
           case NEG_X_NEG_Y_SLOPE:
@@ -77,7 +78,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyZ, XyZ, XYZ, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, xyZ, XyZ, XYZ, BETH);
             break;
 
           case POS_X_POS_Y_SLOPE:
@@ -85,7 +86,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyZ, XYZ, xYZ, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, xyZ, XYZ, xYZ, BETH);
             break;
 
           case NEG_X_POS_Y_SLOPE:
@@ -93,7 +94,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, XyZ, XYZ, xYZ, BLUE);
+            PUSH_TRIANGLE(vertex_cursor, XyZ, XYZ, xYZ, BETH);
             break;
       
           case AIR:
@@ -122,7 +123,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, XyZ, Xyz, XYz, XYZ, RED);
+            PUSH_SQUARE(vertex_cursor, XyZ, Xyz, XYz, XYZ, BETH);
             break;
 
           case NEG_Z_NEG_Y_SLOPE:
@@ -130,7 +131,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, XyZ, Xyz, XYZ, RED);
+            PUSH_TRIANGLE(vertex_cursor, XyZ, Xyz, XYZ, BETH);
             break;
 
           case POS_Z_NEG_Y_SLOPE:
@@ -138,7 +139,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, XyZ, Xyz, XYz, RED);
+            PUSH_TRIANGLE(vertex_cursor, XyZ, Xyz, XYz, BETH);
             break;
 
           case NEG_Z_POS_Y_SLOPE:
@@ -146,7 +147,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, XyZ, XYz, XYZ, RED);
+            PUSH_TRIANGLE(vertex_cursor, XyZ, XYz, XYZ, BETH);
             break;
 
           case POS_Z_POS_Y_SLOPE:
@@ -154,7 +155,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, XYz, XYZ, RED);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XYz, XYZ, BETH);
             break;
       
           case AIR:
@@ -182,7 +183,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYz, Xyz, YELLOW);
+            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYz, Xyz, BETH);
             break;
 
           case NEG_X_NEG_Y_SLOPE:
@@ -190,7 +191,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, XYz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, XYz, BETH);
             break;
 
           case POS_X_NEG_Y_SLOPE:
@@ -198,7 +199,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, xYz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xyz, xYz, BETH);
             break;
 
           case NEG_X_POS_Y_SLOPE:
@@ -206,7 +207,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, xYz, XYz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, xYz, XYz, BETH);
             break;
 
           case POS_X_POS_Y_SLOPE:
@@ -214,7 +215,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xYz, XYz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xYz, XYz, BETH);
             break;
       
           case AIR:
@@ -242,7 +243,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, xyz, xyZ, xYZ, xYz, CYAN);
+            PUSH_SQUARE(vertex_cursor, xyz, xyZ, xYZ, xYz, BETH);
             break;
 
           case POS_Z_NEG_Y_SLOPE:
@@ -250,7 +251,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYz, CYAN);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYz, BETH);
             break;
 
           case NEG_Z_NEG_Y_SLOPE:
@@ -258,7 +259,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYZ, CYAN);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xyZ, xYZ, BETH);
             break;
 
           case POS_Z_POS_Y_SLOPE:
@@ -266,7 +267,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, xYZ, xYz, CYAN);
+            PUSH_TRIANGLE(vertex_cursor, xyz, xYZ, xYz, BETH);
             break;
 
           case NEG_Z_POS_Y_SLOPE:
@@ -274,7 +275,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyZ, xYZ, xYz, CYAN);
+            PUSH_TRIANGLE(vertex_cursor, xyZ, xYZ, xYz, BETH);
             break;
       
           case NEG_X_POS_Y_SLOPE:
@@ -363,7 +364,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[FULL]) {
               break;
             }
-            PUSH_SQUARE(vertex_cursor, xyz, Xyz, XyZ, xyZ, MAGENTA);
+            PUSH_SQUARE(vertex_cursor, xyz, Xyz, XyZ, xyZ, BETH);
             break;
 
           case NEG_NEG_NEG_CORNER:
@@ -371,7 +372,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, Xyz, xyZ, MAGENTA);
+            PUSH_TRIANGLE(vertex_cursor, xyz, Xyz, xyZ, BETH);
             break;
 
           case POS_NEG_NEG_CORNER:
@@ -379,7 +380,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[BOTTOM_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyz, MAGENTA);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyz, BETH);
             break;
 
           case NEG_NEG_POS_CORNER:
@@ -387,7 +388,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_LEFT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, xyz, XyZ, xyZ, MAGENTA);
+            PUSH_TRIANGLE(vertex_cursor, xyz, XyZ, xyZ, BETH);
             break;
 
           case POS_NEG_POS_CORNER:
@@ -395,7 +396,7 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
             if (block_side_occlusion[TOP_RIGHT]) {
               break;
             }
-            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyZ, MAGENTA);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XyZ, xyZ, BETH);
             break;
 
           case AIR:
@@ -414,66 +415,66 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
         // SLOPE
         switch(block_shape) {
           case POS_Z_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYz, xYz, YELLOW);
+            PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYz, xYz, BETH);
             break;
           case POS_X_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, XyZ, Xyz, xYz, xYZ, YELLOW);
+            PUSH_SQUARE(vertex_cursor, XyZ, Xyz, xYz, xYZ, BETH);
             break;
           case NEG_Z_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, Xyz, xyz, xYZ, XYZ, YELLOW);
+            PUSH_SQUARE(vertex_cursor, Xyz, xyz, xYZ, XYZ, BETH);
             break;
           case NEG_X_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyz, xyZ, XYZ, XYz, YELLOW);
+            PUSH_SQUARE(vertex_cursor, xyz, xyZ, XYZ, XYz, BETH);
             break;
           case POS_Z_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, Xyz, XYZ, xYZ, xyz, YELLOW);
+            PUSH_SQUARE(vertex_cursor, Xyz, XYZ, xYZ, xyz, BETH);
             break;
           case POS_X_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyz, XYz, XYZ, xyZ, YELLOW);
+            PUSH_SQUARE(vertex_cursor, xyz, XYz, XYZ, xyZ, BETH);
             break;
           case NEG_Z_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyZ, xYz, XYz, XyZ, YELLOW);
+            PUSH_SQUARE(vertex_cursor, xyZ, xYz, XYz, XyZ, BETH);
             break;
           case NEG_X_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, XyZ, xYZ, xYz, Xyz, YELLOW);
+            PUSH_SQUARE(vertex_cursor, XyZ, xYZ, xYz, Xyz, BETH);
             break;
 
           case POS_NEG_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, XYz, xyz, XyZ, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, XYz, xyz, XyZ, BETH);
             break;
           case NEG_NEG_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xYz, xyZ, Xyz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, xYz, xyZ, Xyz, BETH);
             break;
           case NEG_NEG_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xYZ, XyZ, xyz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, xYZ, XyZ, xyz, BETH);
             break;
           case POS_NEG_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, XYZ, Xyz, xyZ, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, XYZ, Xyz, xyZ, BETH);
             break;
           case POS_POS_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, Xyz, XYZ, xYz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, Xyz, XYZ, xYz, BETH);
             break;
           case NEG_POS_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xyz, XYz, xYZ, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, xyz, XYz, xYZ, BETH);
             break;
           case NEG_POS_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xyZ, xYz, XYZ, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, xyZ, xYz, XYZ, BETH);
             break;
           case POS_POS_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, XyZ, xYZ, XYz, YELLOW);
+            PUSH_TRIANGLE(vertex_cursor, XyZ, xYZ, XYz, BETH);
             break;
 
           case POS_NEG_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, XyZ, XYZ, xYz, xyz, YELLOW);
+            PUSH_SQUARE(vertex_cursor, XyZ, XYZ, xYz, xyz, BETH);
             break;
           case NEG_NEG_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, Xyz, XYz, xYZ, xyZ, YELLOW);
+            PUSH_SQUARE(vertex_cursor, Xyz, XYz, xYZ, xyZ, BETH);
             break;
           case NEG_POS_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYZ, XyZ, YELLOW);
+            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYZ, XyZ, BETH);
             break;
           case POS_POS_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, xyZ, xYZ, XYz, Xyz, YELLOW);
+            PUSH_SQUARE(vertex_cursor, xyZ, xYZ, XYz, Xyz, BETH);
           case AIR:
           case CUBE:
           case BLOCK_SHAPE_COUNT:
@@ -559,11 +560,17 @@ void initSphereChunk(Chunk* c) {
   c->blocks[2][0][0].block_shape = NEG_POS_POS_CORNER;
 }
 
-void initChunk(Chunk* c, BlockShape shape) {
+float AMPLITUDE = 0.5;
+float FREQUENCY = 0.025;
+
+void initChunk(Chunk* c) {
   for(int x = 0; x < CHUNK_SIZE; x++) {
-    for(int y = 0; y < CHUNK_SIZE; y++) {
-      for(int z = 0; z < CHUNK_SIZE; z++) {
-        c->blocks[x][y][z].block_shape = shape;
+    for(int z = 0; z < CHUNK_SIZE; z++) {
+      V2 world_xz = v2(c->origin.x + x, c->origin.z + z) + 0.5;
+      int offset = (LOADED_WORLD_SIZE * CHUNK_SIZE) / 2;
+      float height = perlin(world_xz, FREQUENCY) * offset * AMPLITUDE + offset;
+      for(int y = 0; y < CHUNK_SIZE; y++) {
+        c->blocks[x][y][z].block_shape = (c->origin.y + y) < height ? CUBE : AIR;
       }
     }
   }

@@ -11,6 +11,9 @@ int SCREEN_HEIGHT = 600;
 const int CHUNK_SIZE = 16;
 const int LOADED_WORLD_SIZE = 16;
 
+const float SQRT2 = 1.4142136;
+const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
+
 union Matrix4x4 {
   float seq[16];
   // this is v[row][column] (row major?) (so v[y][x])
@@ -33,6 +36,14 @@ union V3i {
     int z;
   };
   int v[3];
+};
+
+union V2 {
+  struct {
+    float x;
+    float y;
+  };
+  float v[2];
 };
 
 union Quaternion {

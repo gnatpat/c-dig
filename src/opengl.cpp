@@ -34,7 +34,7 @@ bool initOpenGLAndCreateWindow(GLFWwindow** window) {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+  glClearColor(0.2f, 0.5f, 1.0f, 1.0f);
 
   printf("%s\n", glGetString(GL_VERSION));
 

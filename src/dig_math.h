@@ -586,3 +586,139 @@ inline V3i cross(V3i a, V3i b) {
             a.z * b.x - a.x * b.z,
             a.x * b.y - a.y * b.x);
 }
+
+/***********\
+ * VECTOR2 *
+\***********/
+
+inline V2 v2(float x, float y) {
+  V2 result;
+
+  result.x = x;
+  result.y = y;
+
+  return result;
+}
+
+// operators
+
+inline V2 operator+(V2 v, V2 u) {
+  V2 result;
+
+  result.x = u.x + v.x;
+  result.y = u.y + v.y;
+  
+  return result;
+}
+
+inline V2 & operator+=(V2 &v, V2 u) {
+  v = u + v;
+  return v;
+}
+
+inline V2 operator-(V2 v, V2 u) {
+  V2 result;
+
+  result.x = v.x - u.x;
+  result.y = v.y - u.y;
+  
+  return result;
+}
+
+inline V2 & operator-=(V2 &v, V2 u) {
+  v = u - v;
+  return v;
+}
+
+inline V2 operator-(V2 v) {
+  V2 result;
+  result.x = -v.x;
+  result.y = -v.y;
+
+  return result;
+}
+
+// V2 and float operations
+
+inline V2 operator+(float a, V2 v) {
+  V2 result;
+
+  result.x = a + v.x;
+  result.y = a + v.y;
+  
+  return result;
+}
+
+inline V2 operator+(V2 v, float a) {
+  return a + v;
+}
+
+inline V2 & operator+=(V2 &v, float a) {
+  v = a + v;
+  return v;
+}
+
+inline V2 operator-(V2 v, float a) {
+  V2 result;
+
+  result.x = v.x - a ;
+  result.y = v.y - a;
+  
+  return result;
+}
+
+inline V2 & operator-=(V2 &v, float a) {
+  v = v - a;
+  return v;
+}
+
+inline V2 operator*(float a, V2 v) {
+  V2 result;
+
+  result.x = a * v.x;
+  result.y = a * v.y;
+  
+  return result;
+}
+
+inline V2 operator*(V2 v, float a) {
+  return a * v;
+}
+
+inline V2 & operator*=(V2 &v, float a) {
+  v = a * v;
+  return v;
+}
+
+inline V2 operator/(V2 v, float a) {
+  V2 result;
+
+  result.x = v.x / a ;
+  result.y = v.y / a;
+  
+  return result;
+}
+
+inline V2 & operator/=(V2 &v, float a) {
+  v = v / a;
+  return v;
+}
+
+// scalar
+
+inline float inner(V2 v, V2 u) {
+  float result = v.x * u.x + v.y * u.y;
+  return result;
+}
+
+inline float dot(V2 v, V2 u) {
+  return inner(v, u);
+}
+
+inline float lenSq(V2 v) {
+  return inner(v, v);
+}
+
+inline float len(V2 v) {
+  return sqrt(lenSq(v));
+}

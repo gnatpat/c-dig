@@ -15,6 +15,7 @@
 #include "chunk.h"
 #include "dig_math.h"
 #include "models.h"
+#include "noise.h"
 #include "opengl.h"
 #include "shaders.h"
 #include "pthread_aliases.h"
