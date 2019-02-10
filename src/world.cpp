@@ -1,4 +1,4 @@
-Block OOB_BLOCK = { AIR};
+Block OOB_BLOCK = { AIR };
 
 
 Block getBlockAt(LoadedWorld* world, V3i pos) {

@@ -566,7 +566,7 @@ float FREQUENCY = 0.025;
 void initChunk(Chunk* c) {
   for(int x = 0; x < CHUNK_SIZE; x++) {
     for(int z = 0; z < CHUNK_SIZE; z++) {
-      V2 world_xz = v2(c->origin.x + x, c->origin.z + z) + 0.5;
+      V2 world_xz = v2(c->origin.x + x, c->origin.z + z);
       int offset = (LOADED_WORLD_SIZE * CHUNK_SIZE) / 2;
       float height = perlin(world_xz, FREQUENCY) * offset * AMPLITUDE + offset;
       for(int y = 0; y < CHUNK_SIZE; y++) {
