@@ -1,4 +1,4 @@
-Block OOB_BLOCK = { AIR };
+Block OOB_BLOCK = { CUBE };
 
 
 Block getBlockAt(LoadedWorld* world, V3i pos) {
@@ -19,6 +19,8 @@ void initWorld(LoadedWorld* world) {
   world->render_state.new_chunks = NULL;
   world->render_state.dirty_chunks = NULL;
 
+  pthread_mutex_init(&world->render_state.new_chunk_lock, NULL);
+  pthread_cond_init(&world->render_state.new_chunk_condition, NULL);
   lockMutex(&world->render_state.new_chunk_lock);
   for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
     for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
@@ -26,6 +28,7 @@ void initWorld(LoadedWorld* world) {
         Chunk* c = &world->chunks[x][y][z];
         c->origin = v3i(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
         c->render_data.state = NO_RENDER_DATA;
+        initChunk(c);
         addToLinkedList(&world->render_state.new_chunks, c);
       }
     }

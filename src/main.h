@@ -12,7 +12,9 @@
 
 #include "defs.h"
 
+#include "block_viewer.h"
 #include "chunk.h"
+#include "colours.h"
 #include "dig_math.h"
 #include "models.h"
 #include "noise.h"
@@ -22,3 +24,4 @@
 #include "textures.h"
 #include "utils.h"
 #include "world.h"
+#include "generated/block_render.h"

@@ -9,10 +9,13 @@ int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
 const int CHUNK_SIZE = 16;
-const int LOADED_WORLD_SIZE = 16;
+const int LOADED_WORLD_SIZE = 20;
 
 const float SQRT2 = 1.4142136;
 const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
+
+// TODO - this is only needed for key presses. Would be good to move it away
+GLFWwindow* WINDOW;
 
 union Matrix4x4 {
   float seq[16];
@@ -117,14 +120,14 @@ enum XZDirection {
 enum BlockShape {
   AIR,
   CUBE,
-  POS_Z_NEG_Y_SLOPE,
-  POS_X_NEG_Y_SLOPE,
-  NEG_Z_NEG_Y_SLOPE,
-  NEG_X_NEG_Y_SLOPE,
   POS_Z_POS_Y_SLOPE,
   POS_X_POS_Y_SLOPE,
   NEG_Z_POS_Y_SLOPE,
   NEG_X_POS_Y_SLOPE,
+  POS_Z_NEG_Y_SLOPE,
+  POS_X_NEG_Y_SLOPE,
+  NEG_Z_NEG_Y_SLOPE,
+  NEG_X_NEG_Y_SLOPE,
   POS_NEG_NEG_CORNER,
   NEG_NEG_NEG_CORNER,
   NEG_NEG_POS_CORNER,
@@ -133,6 +136,14 @@ enum BlockShape {
   NEG_POS_NEG_CORNER,
   NEG_POS_POS_CORNER,
   POS_POS_POS_CORNER,
+  POS_POS_NEG_CORNERLESS,
+  NEG_POS_NEG_CORNERLESS,
+  NEG_POS_POS_CORNERLESS,
+  POS_POS_POS_CORNERLESS,
+  POS_NEG_NEG_CORNERLESS,
+  NEG_NEG_NEG_CORNERLESS,
+  NEG_NEG_POS_CORNERLESS,
+  POS_NEG_POS_CORNERLESS,
   POS_NEG_DIAGONAL,
   NEG_NEG_DIAGONAL,
   NEG_POS_DIAGONAL,
@@ -203,6 +214,11 @@ struct GameData {
   LoadedWorld loaded_world;
 };
 
-// Generated from py/gen_face_bitfields.py
-bool BLOCK_SIDE_OCCLUSION_BITFIELD[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, true, true, true, false, false, false, false, true, false, false, false, false, false, true, true, true, true, true, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, true, true, true, true, true, false, false, false, true, false, true, true, true, true, true, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, false, true, false, false, false, true, true, true, true, true, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, true, true, true, true, true, false, true, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, false, true, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, true, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, true, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, true, false, false, false, true, false, false, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false, true, false, false, false, false, false, true, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, true};
+struct BlockViewerData {
+  Chunk* c;
+  ChunkRenderData occlusion_render_data;
+  BlockShape block_shape;
+  LoadedWorld empty_world;
+};
+
 #pragma GCC diagnostic ignored "-Wpedantic"

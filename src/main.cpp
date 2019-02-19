@@ -3,6 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "block_viewer.cpp"
 #include "chunk.cpp"
 #include "models.cpp"
 #include "noise.cpp"
@@ -11,6 +12,7 @@
 #include "textures.cpp"
 #include "utils.cpp"
 #include "world.cpp"
+#include "generated/block_render.cpp"
 
 void* newChunkRenderMain(void* game_data_as_void_pointer) {
   GameData* game_data = (GameData*) game_data_as_void_pointer;
@@ -26,7 +28,6 @@ void* newChunkRenderMain(void* game_data_as_void_pointer) {
     Chunk* chunk = (Chunk*) removefromLinkedList(&render_state->new_chunks);
     while (chunk != NULL) {
       unlockMutex(new_chunk_lock);
-      initChunk(chunk);
       fillChunkRenderData(chunk, &game_data->loaded_world);
       lockMutex(new_chunk_lock);
       chunk = (Chunk*) removefromLinkedList(&render_state->new_chunks);
@@ -35,27 +36,66 @@ void* newChunkRenderMain(void* game_data_as_void_pointer) {
   }
 }
 
+
+void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4* view, Matrix4x4* projection) {
+  glUseProgram(terrain_shader);
+  GLuint transformLocation = glGetUniformLocation(terrain_shader, "view");
+  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)view);
+  transformLocation = glGetUniformLocation(terrain_shader, "projection");
+  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)projection);
+
+  for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
+    for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
+      for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
+        Chunk* c = getChunkAt(loaded_world, v3i(x, y, z));
+        switch (c->render_data.state) {
+          case NO_RENDER_DATA:
+          case CHUNK_RENDER_DATA_STATE_COUNT:
+            break;
+
+          case NOT_PASSED_TO_OPENGL:
+            fillChunkVao(c);
+            // The break here is missing on purpose, so that a Chunk with a new VAO is rendered.
+          case OKAY:
+            Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
+                                           (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
+                                           (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
+            transformLocation = glGetUniformLocation(terrain_shader, "model");
+            glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
+            ChunkRenderData* render_data = &c->render_data;
+            glBindVertexArray(render_data->vao);
+            glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
+            break;
+        }
+      }
+    }
+  }
+}
+
+
 int main(void) {
-  GLFWwindow* window;
-  bool success = initOpenGLAndCreateWindow(&window);
+  setbuf(stdout, NULL);
+  bool success = initOpenGLAndCreateWindow(&WINDOW);
   if (!success) {
     return -1;
   }
 
-  GLuint shader_program = compileShaderOrDie("resources/shaders/shader.vs", "resources/shaders/shader.fs");
-  GLuint shader_program_no_texture = compileShaderOrDie("resources/shaders/shader_no_texture.vs",
+  GLuint terrain_shader = compileShaderOrDie("resources/shaders/shader_no_texture.vs",
                                                         "resources/shaders/shader_no_texture.fs");
-
-  GLuint sprite_textures = loadTexture("resources/sprites.png");
-  GLuint sprite_vaos[] = { genTexturedGroundedSprite(0) };
-
-  Sprite sprites[] = { { { 1.0, 3.0, 1.0 }, 0 } };
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initWorld(&game_data->loaded_world);
 
   pthread_t chunk_render_thread;
   pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
+  pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
+  pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
+  pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
+
+  bool down = false;
+  bool block_viewer_mode = false;
+  BlockViewerData* block_viewer_data = (BlockViewerData*) malloc(sizeof(BlockViewerData));
+  initBlockViewer(block_viewer_data);
 
   float t = 0.0;
 
@@ -64,7 +104,7 @@ int main(void) {
 
   struct timespec old_time, new_time;
   clock_gettime(CLOCK_MONOTONIC_RAW, &old_time);
-  while(!glfwWindowShouldClose(window))
+  while(!glfwWindowShouldClose(WINDOW) && !glfwGetKey(WINDOW, GLFW_KEY_Q))
   {
     clock_gettime(CLOCK_MONOTONIC_RAW, &new_time);
     float delta = (new_time.tv_sec - old_time.tv_sec) + (new_time.tv_nsec - old_time.tv_nsec) / 1000000000.0f;
@@ -82,79 +122,41 @@ int main(void) {
     t += delta;
 
     // UPDATE
+    if (block_viewer_mode) {
+      updateBlockViewer(block_viewer_data, &down, &block_viewer_mode);
+    } else {
+      bool mode_swap = glfwGetKey(WINDOW, GLFW_KEY_B);
+      if (mode_swap && !down) {
+        block_viewer_mode = true;
+      }
+      down = mode_swap;
+      // Updates for stuff
+    }
 
     // RENDER
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    float y_rot = M_PI / 8 * t;
+    if (block_viewer_mode) {
+      renderBlockViewer(block_viewer_data, t, terrain_shader);
+    } else {
+      float y_rot = M_PI / 8 * t;
+      Matrix4x4 view = identity();
+      view *= translate(v3(0.0, 0.0, -CHUNK_SIZE * LOADED_WORLD_SIZE));
+      view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 6);
+      view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
+      float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
+      Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
 
-    // Chunk
-    Matrix4x4 view = identity();
-    view *= translate(v3(0.0, 0.0, -CHUNK_SIZE * LOADED_WORLD_SIZE/2));
-    view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 6);
-    view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
-    //view *= translate(v3(0, -2 * CHUNK_SIZE, 0));
-    float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
-    Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
-
-    glUseProgram(shader_program_no_texture);
-    GLuint transformLocation = glGetUniformLocation(shader_program, "view");
-    glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
-    transformLocation = glGetUniformLocation(shader_program, "projection");
-    glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
-
-    for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
-      for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
-        for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
-          Chunk* c = getChunkAt(&game_data->loaded_world, v3i(x, y, z));
-          switch (c->render_data.state) {
-            case NO_RENDER_DATA:
-            case CHUNK_RENDER_DATA_STATE_COUNT:
-              break;
-
-            case NOT_PASSED_TO_OPENGL:
-              fillChunkVao(c);
-              // The break here is missing on purpose, so that a Chunk with a new VAO is rendered.
-            case OKAY:
-              Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                             (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                             (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
-              transformLocation = glGetUniformLocation(shader_program, "model");
-              glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
-              ChunkRenderData* render_data = &c->render_data;
-              glBindVertexArray(render_data->vao);
-              glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
-              break;
-          }
-        }
-      }
+      renderWorld(&game_data->loaded_world, terrain_shader, &view, &projection);
     }
 
-    // Sprites
-    glUseProgram(shader_program);
-    transformLocation = glGetUniformLocation(shader_program, "view");
-    glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
-    transformLocation = glGetUniformLocation(shader_program, "projection");
-    glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sprite_textures);
-    for (unsigned int i = 0; i < (sizeof(sprites) / sizeof(Sprite)); i++) {
-      Sprite s = sprites[i];
-      Matrix4x4 model = identity();
-      model *= translate(s.position);
-      model *= rotate(v3(0, 1, 0) * -y_rot);
-      transformLocation = glGetUniformLocation(shader_program, "model");
-      glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
-      glBindVertexArray(sprite_vaos[s.index]);
-      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    }
-
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(WINDOW);
     glfwPollEvents();    
   }
 
   free(game_data);
+  free(block_viewer_data);
   glfwTerminate();
   return 0;
 }
+
