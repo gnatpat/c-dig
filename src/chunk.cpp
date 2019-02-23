@@ -16,122 +16,6 @@ void fillChunkRenderData(Chunk* chunk, LoadedWorld* world) {
       for(int z = 0; z < CHUNK_SIZE; z++) {
         BlockShape block_shape = chunk->blocks[x][y][z].block_shape;
         pushBlockVertices(&vertex_cursor, chunk, world, x, y, z, block_shape);
-
-        // Some cleanup needed, these slopes should be generated somehow D:
-        float fx = x;
-        float fy = y;
-        float fz = z;
-        V3 xyz = {fx, fy, fz};
-        V3 Xyz = {fx + 1, fy, fz};
-        V3 xYz = {fx, fy + 1, fz};
-        V3 xyZ = {fx, fy, fz + 1};
-        V3 xYZ = {fx, fy + 1, fz + 1};
-        V3 XyZ = {fx + 1, fy, fz + 1};
-        V3 XYz = {fx + 1, fy + 1, fz};
-        V3 XYZ = {fx + 1, fy + 1, fz + 1};
-        // SLOPE
-        switch(block_shape) {
-          case POS_Z_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyZ, XyZ, XYz, xYz, GREEN);
-            break;
-          case POS_X_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, XyZ, Xyz, xYz, xYZ, GREEN);
-            break;
-          case NEG_Z_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, Xyz, xyz, xYZ, XYZ, GREEN);
-            break;
-          case NEG_X_POS_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyz, xyZ, XYZ, XYz, GREEN);
-            break;
-          case POS_Z_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, Xyz, XYZ, xYZ, xyz, GREEN);
-            break;
-          case POS_X_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyz, XYz, XYZ, xyZ, GREEN);
-            break;
-          case NEG_Z_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, xyZ, xYz, XYz, XyZ, GREEN);
-            break;
-          case NEG_X_NEG_Y_SLOPE:
-            PUSH_SQUARE(vertex_cursor, XyZ, xYZ, xYz, Xyz, GREEN);
-            break;
-
-          case POS_NEG_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, XYz, xyz, XyZ, GREEN);
-            break;
-          case NEG_NEG_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xYz, xyZ, Xyz, GREEN);
-            break;
-          case NEG_NEG_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xYZ, XyZ, xyz, GREEN);
-            break;
-          case POS_NEG_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, XYZ, Xyz, xyZ, GREEN);
-            break;
-          case POS_POS_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, Xyz, XYZ, xYz, GREEN);
-            break;
-          case NEG_POS_NEG_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xyz, XYz, xYZ, GREEN);
-            break;
-          case NEG_POS_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, xyZ, xYz, XYZ, GREEN);
-            break;
-          case POS_POS_POS_CORNER:
-            PUSH_TRIANGLE(vertex_cursor, XyZ, xYZ, XYz, GREEN);
-            break;
-
-          case POS_NEG_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, XyZ, XYZ, xYz, xyz, GREEN);
-            break;
-          case NEG_NEG_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, Xyz, XYz, xYZ, xyZ, GREEN);
-            break;
-          case NEG_POS_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, xyz, xYz, XYZ, XyZ, GREEN);
-            break;
-          case POS_POS_DIAGONAL:
-            PUSH_SQUARE(vertex_cursor, xyZ, xYZ, XYz, Xyz, GREEN);
-            break;
-
-          case POS_POS_NEG_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, XYZ, Xyz, xYz, GREEN);
-            break;
-
-          case NEG_POS_NEG_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, xYZ, XYz, xyz, GREEN);
-            break;
-
-          case NEG_POS_POS_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, XYZ, xYz, xyZ, GREEN);
-            break;
-
-          case POS_POS_POS_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, xYZ, XyZ, XYz, GREEN);
-            break;
-
-          case POS_NEG_NEG_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, XYz, XyZ, xyz, GREEN);
-            break;
-
-          case NEG_NEG_NEG_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, xYz, Xyz, xyZ, GREEN);
-            break;
-
-          case NEG_NEG_POS_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, xYZ, xyz, XyZ, GREEN);
-            break;
-
-          case POS_NEG_POS_CORNERLESS:
-            PUSH_TRIANGLE(vertex_cursor, XYZ, xyZ, Xyz, GREEN);
-            break;
-
-          case AIR:
-          case CUBE:
-          case BLOCK_SHAPE_COUNT:
-          default:
-            break;
-        }
       }
     }
   }
@@ -161,10 +45,12 @@ void fillChunkVao(Chunk* chunk) {
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(ChunkVertex), chunk->render_data.vertices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ChunkVertex), (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ChunkVertex), (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ChunkVertex), (void*)(6 * sizeof(float)));
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
 
   chunk->render_data.vao = vao;
   chunk->render_data.state = OKAY;

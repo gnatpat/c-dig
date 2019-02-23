@@ -1,7 +1,7 @@
 import datetime
 import subprocess
 
-from typing import NamedTuple, List
+from typing import NamedTuple, List, Tuple
 from enum import IntEnum, Enum
 
 class DirectionOrder(IntEnum):
@@ -19,6 +19,14 @@ OFFSET_DIRECTION = [
         "x-1, y, z",
         "x, y+1, z",
         "x, y-1, z"]
+
+NORMALS = [
+        "v3(0, 0, 1)",
+        "v3(1, 0, 0)",
+        "v3(0, 0, -1)",
+        "v3(-1, 0, 0)",
+        "v3(0, 1, 0)",
+        "v3(0, -1, 0)"]
 
 OPPOSITE = [
         DirectionOrder.NEG_Z,
@@ -41,6 +49,11 @@ SIDE_TYPES = list(range(6))
 class SideType(NamedTuple):
     name: str
     occlusion: List[bool]
+
+
+class Slope(NamedTuple):
+    vertices: str
+    normal: Tuple[float]
 
 
 SIDE_TYPE_DATA = [
@@ -120,6 +133,28 @@ def swap_y(side):
     if side == BOTTOM_RIGHT:
         return TOP_RIGHT
     return side
+
+
+def rotate_vertex_string_around_xz(vertex, rotations):
+    if rotations == 0:
+        return vertex
+    x_pos = vertex[0] == 'X'
+    z_pos = vertex[2] == 'Z'
+    return rotate_vertex_string_around_xz(("X" if z_pos else "x") + vertex[1] + ("z" if x_pos else "Z"), rotations-1)
+
+
+def rotate_direction_around_xz(direction, rotations):
+    if rotations == 0:
+        return direction
+    return rotate_direction_around_xz((direction[2], direction[1], -direction[0]), rotations-1)
+
+
+def all_four_slopes(vertices, normal):
+    for direction in range(4):
+        yield Slope(list(map(lambda v: rotate_vertex_string_around_xz(v, direction), vertices)), rotate_direction_around_xz(normal, direction))
+
+def direction_to_c_string(direction):
+    return f"v3({', '.join(str(d) for d in direction)})"
 
 
 def air():
@@ -238,6 +273,21 @@ def chunk(l, n):
 
 def main():
     side_data = air() + cube() + ground_slopes() + ceiling_slopes() + ground_corner_slopes() + ceiling_corner_slopes() + ground_cornerless() + ceiling_cornerless() + diagonals() 
+    slopes = ([None, None] +
+            # Ground slopes
+            list(all_four_slopes(["xyZ", "XyZ", "XYz", "xYz"], (0, 1, 1))) +
+            # Ceiling slopes
+            list(all_four_slopes(["Xyz", "XYZ", "xYZ", "xyz"], (0, -1, 1))) +
+            # Ground corner slopes
+            list(all_four_slopes(["XYz", "xyz", "XyZ"], (-1, 1, 1))) +
+            # Ceiling corner slopes
+            list(all_four_slopes(["Xyz", "XYZ", "xYz"], (-1, -1, 1))) +
+            # ground cornerless
+            list(all_four_slopes(["XYZ", "Xyz", "xYz"], (1, 1, -1))) +
+            # ceiling cornerless
+            list(all_four_slopes(["XYz", "XyZ", "xyz"], (1, -1, -1))) +
+            # diagonals
+            list(all_four_slopes(["XyZ", "XYZ", "xYz", "xyz"], (-1, 0, 1))))
 
     new_bits = []
     for i, side in enumerate(side_data):
@@ -261,6 +311,7 @@ def main():
                 """);
         f.write("void pushBlockVertices(ChunkVertex** vertex_cursor, Chunk* chunk, LoadedWorld* world, int x, int y, int z, BlockShape block_shape) {\n")
         f.write("bool* block_side_occulusion;\n")
+        f.write("V3 normal;\n");
         f.write("""
                 float fx = x;
                 float fy = y;
@@ -277,6 +328,7 @@ def main():
         for direction in DirectionOrder:
             f.write(f"\n// {direction.name}\n")
             f.write(f"block_side_occulusion = getBlockSideOcclusion(getBlockShapeAt(world, chunk, {OFFSET_DIRECTION[direction]}), {OPPOSITE[direction].name});\n")
+            f.write(f"normal = {NORMALS[direction]};\n")
             f.write("switch(block_shape) {\n")
             for side_type in SIDE_TYPES:
                 block_types = render_order[direction][side_type]
@@ -290,14 +342,28 @@ def main():
                 f.write(f"if (block_side_occulusion[{SIDE_TYPE_DATA[side_type].name}]) {{\nbreak;\n}}\n")
                 if side_type == FULL_SIDE:
                     face_vertices = FACE_VERTICES[int(direction)]
-                    push_function = 'PUSH_SQUARE'
+                    push_function = 'pushSquare'
                 else:
                     face_vertices = [v for v, b in zip(FACE_VERTICES[direction], SIDE_TYPE_DATA[side_type].occlusion[1:]) if not b]
-                    push_function = 'PUSH_TRIANGLE'
-                f.write(f"{push_function}(*vertex_cursor, {', '.join(face_vertices)}, {COLOURS[direction]});\n")
+                    push_function = 'pushTriangle'
+                f.write(f"{push_function}(vertex_cursor, {', '.join(face_vertices)}, {COLOURS[direction]}, normal);\n")
                 f.write("break;\n\n")
             f.write("}\n")
+        f.write("\n\n//SLOPES\n");
+        f.write("switch(block_shape) {\n")
+        for block_shape, slope in zip(BLOCK_SHAPE_NAMES, slopes):
+            f.write(f"case {block_shape}:\n")
+            if slope:
+                if len(slope.vertices) == 3:
+                    push_function = 'pushTriangle'
+                else:
+                    push_function = 'pushSquare'
+                f.write(f"{push_function}(vertex_cursor, {', '.join(slope.vertices)}, GREEN, {direction_to_c_string(slope.normal)});\n")
+            f.write("break;\n")
+        f.write("case BLOCK_SHAPE_COUNT:\nbreak;\n")
         f.write("}\n")
+        f.write("}\n")
+
     subprocess.run(['clang-format', '-i', 'src/generated/block_render.cpp'])
 
 

@@ -13,6 +13,9 @@ const int LOADED_WORLD_SIZE = 16;
 
 const float SQRT2 = 1.4142136;
 const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
+const float SQRT3 = sqrt(3);
+const float ONE_OVER_SQRT3 = 1.0 / SQRT3;
+
 
 union Matrix4x4 {
   float seq[16];
@@ -180,6 +183,7 @@ enum FaceShape {
 struct ChunkVertex {
   V3 vertex;
   V3 colour;
+  V3 normal;
 };
 
 struct Block {
