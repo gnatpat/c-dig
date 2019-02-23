@@ -9,13 +9,12 @@ uniform mat4 projection;
 
 out vec3 pos;
 out vec3 col;
-out vec3 normal;
 
 void main()
 {
   gl_Position = projection * view * model * vec4(aPos, 1.0);
   pos = aPos;
-  col = aCol;
-  normal = aNormal;
+  // TODO: sun/moon rising/setting, other lighting bits
+  col = aCol * (0.75 + dot(aNormal, vec3(0.577, -0.577, 0.577) * 0.25));
 }       
 
