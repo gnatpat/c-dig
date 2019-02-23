@@ -212,7 +212,7 @@ void initSphereChunk(Chunk* c) {
   c->blocks[2][0][0].block_shape = NEG_POS_POS_CORNER;
 }
 
-float AMPLITUDE = 0.5;
+float AMPLITUDE = 0.2;
 float FREQUENCY = 0.025;
 
 void initChunk(Chunk* c) {

@@ -81,22 +81,16 @@ void updateForNewShape(BlockViewerData* block_viewer_data, BlockShape block_shap
 }
 
 
-void updateBlockViewer(BlockViewerData* block_viewer_data, bool* down, bool* block_viewer_mode) {
-  bool left = glfwGetKey(WINDOW, GLFW_KEY_LEFT);
-  bool right = glfwGetKey(WINDOW, GLFW_KEY_RIGHT);
-  bool mode_swap = glfwGetKey(WINDOW, GLFW_KEY_B);
-  if (!*down) {
-    if (left || right) {
-      int diff;
-      if (left) diff = -1;
-      if (right) diff = 1;
-      BlockShape shape = (BlockShape)(((int) block_viewer_data->block_shape + diff + BLOCK_SHAPE_COUNT) % BLOCK_SHAPE_COUNT);
-      updateForNewShape(block_viewer_data, shape);
-    } else if (mode_swap) {
-      *block_viewer_mode = false;
-    }
+void updateBlockViewer(BlockViewerData* block_viewer_data) {
+  bool left = isKeyPressed(PLAYER_MOVE_LEFT_KEY);
+  bool right = isKeyPressed(PLAYER_MOVE_RIGHT_KEY);
+  if (left || right) {
+    int diff;
+    if (left) diff = -1;
+    if (right) diff = 1;
+    BlockShape shape = (BlockShape)(((int) block_viewer_data->block_shape + diff + BLOCK_SHAPE_COUNT) % BLOCK_SHAPE_COUNT);
+    updateForNewShape(block_viewer_data, shape);
   }
-  *down = left || right || mode_swap;
 }
 
 void renderBlockViewer(BlockViewerData* block_viewer_data, float t, GLuint terrain_shader_program) {
@@ -126,11 +120,9 @@ void renderBlockViewer(BlockViewerData* block_viewer_data, float t, GLuint terra
   transformLocation = glGetUniformLocation(terrain_shader_program, "model");
   glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
 
-  if (!glfwGetKey(WINDOW, GLFW_KEY_SPACE)) {
-    ChunkRenderData* rd = &(block_viewer_data->occlusion_render_data);
-    glBindVertexArray(rd->vao);
-    glDrawArrays(GL_TRIANGLES, 0, rd->num_vertices);
-  }
+  ChunkRenderData* rd = &(block_viewer_data->occlusion_render_data);
+  glBindVertexArray(rd->vao);
+  glDrawArrays(GL_TRIANGLES, 0, rd->num_vertices);
 }
 
 

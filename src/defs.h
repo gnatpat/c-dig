@@ -9,13 +9,10 @@ int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
 const int CHUNK_SIZE = 16;
-const int LOADED_WORLD_SIZE = 20;
+const int LOADED_WORLD_SIZE = 16;
 
 const float SQRT2 = 1.4142136;
 const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
-
-// TODO - this is only needed for key presses. Would be good to move it away
-GLFWwindow* WINDOW;
 
 union Matrix4x4 {
   float seq[16];
@@ -70,6 +67,26 @@ struct LinkedList {
   void* content;
   LinkedList* next;
 };
+
+// TODO - actually use this LockedLinkedList
+struct LockedLinkedList {
+  LinkedList* list;
+  Mutex lock = PTHREAD_MUTEX_INITIALIZER;
+  MutexCondition new_element_condition = PTHREAD_COND_INITIALIZER;
+};
+
+
+enum InputKey {
+  PLAYER_MOVE_FORWARD_KEY,
+  PLAYER_MOVE_BACKWARD_KEY,
+  PLAYER_MOVE_LEFT_KEY,
+  PLAYER_MOVE_RIGHT_KEY,
+  SWITCH_TO_BLOCK_VIEWER_KEY,
+  QUIT_KEY,
+
+  INPUT_KEY_COUNT
+};
+
 
 struct Sprite {
   V3 position;
@@ -186,7 +203,7 @@ struct ChunkRenderData {
   int num_vertices;
   // Render data should only exist here when state is NOT_PASSED_TO_OPENGL
   ChunkVertex* vertices;
-  // VAO should only exist when state is DIRTY or CLEAN
+  // VAO should only exist when state is OKAY
   GLuint vao;
 };
 
@@ -210,7 +227,15 @@ struct LoadedWorld {
   WorldRenderState render_state;
 };
 
+struct Player {
+  V3 position;
+  float pitch;
+  float yaw;
+};
+
+
 struct GameData {
+  Player player;
   LoadedWorld loaded_world;
 };
 

@@ -16,6 +16,7 @@
 #include "chunk.h"
 #include "colours.h"
 #include "dig_math.h"
+#include "input.h"
 #include "models.h"
 #include "noise.h"
 #include "opengl.h"

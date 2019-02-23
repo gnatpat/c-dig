@@ -5,6 +5,7 @@
 
 #include "block_viewer.cpp"
 #include "chunk.cpp"
+#include "input.cpp"
 #include "models.cpp"
 #include "noise.cpp"
 #include "opengl.cpp"
@@ -75,7 +76,8 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4* vi
 
 int main(void) {
   setbuf(stdout, NULL);
-  bool success = initOpenGLAndCreateWindow(&WINDOW);
+  GLFWwindow* window;
+  bool success = initOpenGLAndCreateWindow(&window);
   if (!success) {
     return -1;
   }
@@ -88,11 +90,9 @@ int main(void) {
 
   pthread_t chunk_render_thread;
   pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
-  pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
-  pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
-  pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
 
-  bool down = false;
+  initInput();
+
   bool block_viewer_mode = false;
   BlockViewerData* block_viewer_data = (BlockViewerData*) malloc(sizeof(BlockViewerData));
   initBlockViewer(block_viewer_data);
@@ -104,7 +104,7 @@ int main(void) {
 
   struct timespec old_time, new_time;
   clock_gettime(CLOCK_MONOTONIC_RAW, &old_time);
-  while(!glfwWindowShouldClose(WINDOW) && !glfwGetKey(WINDOW, GLFW_KEY_Q))
+  while(!glfwWindowShouldClose(window) && !isKeyDown(QUIT_KEY))
   {
     clock_gettime(CLOCK_MONOTONIC_RAW, &new_time);
     float delta = (new_time.tv_sec - old_time.tv_sec) + (new_time.tv_nsec - old_time.tv_nsec) / 1000000000.0f;
@@ -122,15 +122,15 @@ int main(void) {
     t += delta;
 
     // UPDATE
+
+    if (isKeyPressed(SWITCH_TO_BLOCK_VIEWER_KEY)) {
+      block_viewer_mode = !block_viewer_mode;
+    }
+
     if (block_viewer_mode) {
-      updateBlockViewer(block_viewer_data, &down, &block_viewer_mode);
+      updateBlockViewer(block_viewer_data);
     } else {
-      bool mode_swap = glfwGetKey(WINDOW, GLFW_KEY_B);
-      if (mode_swap && !down) {
-        block_viewer_mode = true;
-      }
-      down = mode_swap;
-      // Updates for stuff
+      // Do some updates lol
     }
 
     // RENDER
@@ -150,7 +150,9 @@ int main(void) {
       renderWorld(&game_data->loaded_world, terrain_shader, &view, &projection);
     }
 
-    glfwSwapBuffers(WINDOW);
+    glfwSwapBuffers(window);
+
+    updateInput();
     glfwPollEvents();    
   }
 

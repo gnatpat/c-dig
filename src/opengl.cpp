@@ -29,6 +29,7 @@ bool initOpenGLAndCreateWindow(GLFWwindow** window) {
 
   glViewport(0, 0, 800, 600);
   glfwSetFramebufferSizeCallback(*window, framebufferSizeCallback);
+  glfwSetKeyCallback(*window, keyCallback);
   glfwSwapInterval(0);
   
   glEnable(GL_DEPTH_TEST);
