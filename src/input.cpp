@@ -7,6 +7,9 @@ static bool keys_down[INPUT_KEY_COUNT];
 static bool keys_released[INPUT_KEY_COUNT];
 static int key_mappings[INPUT_KEY_COUNT];
 
+static V2 mouse_d;
+static V2 mouse_pos;
+
 
 bool isKeyDown(InputKey key) {
   return keys_down[key];
@@ -20,6 +23,9 @@ bool isKeyReleased(InputKey key) {
   return keys_released[key];
 }
 
+V2 mouseDifference() {
+  return mouse_d;
+}
 
 void initInputKeyMappings() {
   key_mappings[PLAYER_MOVE_FORWARD_KEY] = GLFW_KEY_W;
@@ -45,6 +51,8 @@ void updateInput() {
     keys_pressed[key] = false;
     keys_released[key] = false;
   }
+  mouse_d.x = 0.0f;
+  mouse_d.y = 0.0f;
 }
 
 
@@ -65,4 +73,10 @@ void keyCallback(GLFWwindow* window, int keycode, int scancode, int action, int 
     }
     return;
   }
+}
+
+void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
+  V2 old_pos = mouse_pos;
+  mouse_pos = v2(xpos, ypos);
+  mouse_d = mouse_pos - old_pos;
 }

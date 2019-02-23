@@ -1,3 +1,7 @@
+float clamp(float lower, float x, float upper) {
+  return fminf(fmaxf(lower, x), upper);
+}
+
 /**************\
  * QUATERNION *
 \**************/
@@ -283,6 +287,11 @@ inline V3 v3(float x, float y, float z) {
   return result;
 }
 
+inline void printV3(V3 v) {
+  printf("[ %2.2f, %2.2f, %2.2f ]\n", v.x, v.y, v.z);
+}
+
+
 // operators
 
 inline V3 operator+(V3 v, V3 u) {
@@ -311,7 +320,7 @@ inline V3 operator-(V3 v, V3 u) {
 }
 
 inline V3 & operator-=(V3 &v, V3 u) {
-  v = u - v;
+  v = v - u;
   return v;
 }
 
@@ -411,6 +420,15 @@ inline float lenSq(V3 v) {
 
 inline float len(V3 v) {
   return sqrt(lenSq(v));
+}
+
+
+inline V3 normalise(V3 v) {
+  float length = len(v);
+  if (length == 0.0) {
+    return v;
+  }
+  return v / length;
 }
 
 // vector vector

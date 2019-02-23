@@ -231,8 +231,8 @@ struct Player {
   V3 position;
   float pitch;
   float yaw;
+  V3 facing;
 };
-
 
 struct GameData {
   Player player;

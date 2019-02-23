@@ -9,6 +9,7 @@
 #include "models.cpp"
 #include "noise.cpp"
 #include "opengl.cpp"
+#include "player.cpp"
 #include "shaders.cpp"
 #include "textures.cpp"
 #include "utils.cpp"
@@ -36,7 +37,6 @@ void* newChunkRenderMain(void* game_data_as_void_pointer) {
     waitForCondition(&render_state->new_chunk_condition, new_chunk_lock);
   }
 }
-
 
 void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4* view, Matrix4x4* projection) {
   glUseProgram(terrain_shader);
@@ -92,6 +92,7 @@ int main(void) {
   pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
 
   initInput();
+  initPlayer(&game_data->player);
 
   bool block_viewer_mode = false;
   BlockViewerData* block_viewer_data = (BlockViewerData*) malloc(sizeof(BlockViewerData));
@@ -130,7 +131,7 @@ int main(void) {
     if (block_viewer_mode) {
       updateBlockViewer(block_viewer_data);
     } else {
-      // Do some updates lol
+      updatePlayer(&game_data->player, delta);
     }
 
     // RENDER
@@ -139,11 +140,15 @@ int main(void) {
     if (block_viewer_mode) {
       renderBlockViewer(block_viewer_data, t, terrain_shader);
     } else {
-      float y_rot = M_PI / 8 * t;
+      Player* player = &game_data->player;
+      Matrix4x4 yaw_rotation = rotate(v3(0, 1, 0) * player->yaw);
+      Matrix4x4 pitch_rotation = rotate(v3(1, 0, 0) * player->pitch);
+
       Matrix4x4 view = identity();
-      view *= translate(v3(0.0, 0.0, -CHUNK_SIZE * LOADED_WORLD_SIZE));
-      view *= rotate(v3(1.0, 0.0, 0.0) * M_PI / 6);
-      view *= rotate(v3(0.0, 1.0, 0.0) * y_rot);
+      view *= pitch_rotation;
+      view *= yaw_rotation;
+      view *= translate(game_data->player.position);
+
       float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
       Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
 
