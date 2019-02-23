@@ -120,6 +120,7 @@ void initChunk(Chunk* c) {
       int XZ = corner_heights[x+1][z+1];
       int midheight = (xz + xZ + Xz + XZ) / 4;
       BlockShape topper;
+      BlockShape smoother = CUBE;
       if (xz == Xz && Xz == xZ && xZ == XZ) {
         topper = AIR;
       } else if (xz <= midheight && xZ <= midheight && XZ > midheight && Xz > midheight) {
@@ -140,12 +141,24 @@ void initChunk(Chunk* c) {
         topper = POS_POS_NEG_CORNERLESS;
       } else if (xz > midheight && xZ <= midheight && XZ <= midheight && Xz <= midheight) {
         topper = NEG_NEG_NEG_CORNER;
+        if(XZ < midheight) {
+          smoother = POS_POS_POS_CORNERLESS;
+        }
       } else if (xz <= midheight && xZ > midheight && XZ <= midheight && Xz <= midheight) {
         topper = NEG_NEG_POS_CORNER;
+        if(Xz < midheight) {
+          smoother = POS_POS_NEG_CORNERLESS;
+        }
       } else if (xz <= midheight && xZ <= midheight && XZ > midheight && Xz <= midheight) {
         topper = POS_NEG_POS_CORNER;
+        if(xz < midheight) {
+          smoother = NEG_POS_NEG_CORNERLESS;
+        }
       } else if (xz <= midheight && xZ <= midheight && XZ <= midheight && Xz > midheight) {
         topper = POS_NEG_NEG_CORNER;
+        if (xZ < midheight) {
+          smoother = NEG_POS_POS_CORNERLESS;
+        }
       } else {
         topper = AIR;
       }
@@ -155,6 +168,9 @@ void initChunk(Chunk* c) {
       }
       if(block_relative_midheight >= 0 && block_relative_midheight < CHUNK_SIZE) {
         c->blocks[x][block_relative_midheight][z].block_shape = topper;
+      }
+      if(block_relative_midheight-1 >= 0 && block_relative_midheight-1 < CHUNK_SIZE) {
+        c->blocks[x][block_relative_midheight-1][z].block_shape = smoother;
       }
     }
   }
