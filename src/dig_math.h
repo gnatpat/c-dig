@@ -457,6 +457,12 @@ inline void printV3i(V3i v) {
   printf("[ %d, %d, %d ]\n", v.x, v.y, v.z);
 }
 
+// TODO: I couldn't find a way to make these casts. Oh well.
+inline V3 toV3(V3i v) {
+  return v3((float)v.x, (float)v.y, (float)v.z);
+}
+
+
 // operators
 
 inline V3i operator+(V3i v, V3i u) {
@@ -576,6 +582,11 @@ inline V3i operator%(V3i v, int a) {
   result.z = v.z % a;
   
   return result;
+}
+
+inline V3i & operator%=(V3i &v, int a) {
+  v = v % a;
+  return v;
 }
 
 // scalar
@@ -738,5 +749,142 @@ inline float lenSq(V2 v) {
 }
 
 inline float len(V2 v) {
+  return sqrt(lenSq(v));
+}
+
+
+/************\
+ * VECTOR2I *
+\************/
+
+inline V2i v2i(int x, int y) {
+  V2i result;
+
+  result.x = x;
+  result.y = y;
+
+  return result;
+}
+
+// operators
+
+inline V2i operator+(V2i v, V2i u) {
+  V2i result;
+
+  result.x = u.x + v.x;
+  result.y = u.y + v.y;
+  
+  return result;
+}
+
+inline V2i & operator+=(V2i &v, V2i u) {
+  v = u + v;
+  return v;
+}
+
+inline V2i operator-(V2i v, V2i u) {
+  V2i result;
+
+  result.x = v.x - u.x;
+  result.y = v.y - u.y;
+  
+  return result;
+}
+
+inline V2i & operator-=(V2i &v, V2i u) {
+  v = u - v;
+  return v;
+}
+
+inline V2i operator-(V2i v) {
+  V2i result;
+  result.x = -v.x;
+  result.y = -v.y;
+
+  return result;
+}
+
+// V2i and int operations
+
+inline V2i operator+(int a, V2i v) {
+  V2i result;
+
+  result.x = a + v.x;
+  result.y = a + v.y;
+  
+  return result;
+}
+
+inline V2i operator+(V2i v, int a) {
+  return a + v;
+}
+
+inline V2i & operator+=(V2i &v, int a) {
+  v = a + v;
+  return v;
+}
+
+inline V2i operator-(V2i v, int a) {
+  V2i result;
+
+  result.x = v.x - a ;
+  result.y = v.y - a;
+  
+  return result;
+}
+
+inline V2i & operator-=(V2i &v, int a) {
+  v = v - a;
+  return v;
+}
+
+inline V2i operator*(int a, V2i v) {
+  V2i result;
+
+  result.x = a * v.x;
+  result.y = a * v.y;
+  
+  return result;
+}
+
+inline V2i operator*(V2i v, int a) {
+  return a * v;
+}
+
+inline V2i & operator*=(V2i &v, int a) {
+  v = a * v;
+  return v;
+}
+
+inline V2i operator/(V2i v, int a) {
+  V2i result;
+
+  result.x = v.x / a ;
+  result.y = v.y / a;
+  
+  return result;
+}
+
+inline V2i & operator/=(V2i &v, int a) {
+  v = v / a;
+  return v;
+}
+
+// scalar
+
+inline int inner(V2i v, V2i u) {
+  int result = v.x * u.x + v.y * u.y;
+  return result;
+}
+
+inline int dot(V2i v, V2i u) {
+  return inner(v, u);
+}
+
+inline int lenSq(V2i v) {
+  return inner(v, v);
+}
+
+inline float len(V2i v) {
   return sqrt(lenSq(v));
 }

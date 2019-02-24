@@ -31,48 +31,13 @@ void* newChunkRenderMain(void* game_data_as_void_pointer) {
     while (chunk != NULL) {
       unlockMutex(new_chunk_lock);
       fillChunkRenderData(chunk, &game_data->loaded_world);
+      pthread_testcancel();
       lockMutex(new_chunk_lock);
       chunk = (Chunk*) removefromLinkedList(&render_state->new_chunks);
     }
     waitForCondition(&render_state->new_chunk_condition, new_chunk_lock);
   }
 }
-
-void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4* view, Matrix4x4* projection) {
-  glUseProgram(terrain_shader);
-  GLuint transformLocation = glGetUniformLocation(terrain_shader, "view");
-  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)view);
-  transformLocation = glGetUniformLocation(terrain_shader, "projection");
-  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)projection);
-
-  for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
-    for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
-      for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
-        Chunk* c = getChunkAt(loaded_world, v3i(x, y, z));
-        switch (c->render_data.state) {
-          case NO_RENDER_DATA:
-          case CHUNK_RENDER_DATA_STATE_COUNT:
-            break;
-
-          case NOT_PASSED_TO_OPENGL:
-            fillChunkVao(c);
-            // The break here is missing on purpose, so that a Chunk with a new VAO is rendered.
-          case OKAY:
-            Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                           (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                           (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
-            transformLocation = glGetUniformLocation(terrain_shader, "model");
-            glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
-            ChunkRenderData* render_data = &c->render_data;
-            glBindVertexArray(render_data->vao);
-            glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
-            break;
-        }
-      }
-    }
-  }
-}
-
 
 int main(void) {
   setbuf(stdout, NULL);
@@ -161,6 +126,8 @@ int main(void) {
     glfwPollEvents();    
   }
 
+  pthread_cancel(chunk_render_thread);
+  pthread_join(chunk_render_thread, NULL);
   free(game_data);
   free(block_viewer_data);
   glfwTerminate();

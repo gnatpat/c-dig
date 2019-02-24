@@ -40,3 +40,25 @@ void* removefromLinkedList(LinkedList** list) {
   free(node_to_remove);
   return content;
 }
+
+V3i getDirectionVector(Direction direction) {
+  assert(direction != DIRECTION_COUNT);
+  switch(direction) {
+    case POS_Z:
+      return v3i(0, 0, 1);
+    case POS_X:
+      return v3i(1, 0, 0);
+    case NEG_Z:
+      return v3i(0, 0, -1);
+    case NEG_X:
+      return v3i(-1, 0, 0);
+    case POS_Y:
+      return v3i(0, 1, 0);
+    case NEG_Y:
+      return v3i(0, -1, 0);
+    case DIRECTION_COUNT:
+      return v3i(0, 0, 0);
+  }
+  assert(false);
+  return v3i(0, 0, 0);
+}

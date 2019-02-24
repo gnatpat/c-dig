@@ -49,6 +49,15 @@ union V2 {
   float v[2];
 };
 
+union V2i {
+  struct {
+    int x;
+    int y;
+  };
+  int v[2];
+};
+
+
 union Quaternion {
   struct {
     float w;
@@ -228,6 +237,7 @@ struct WorldRenderState {
 struct LoadedWorld {
   Chunk chunks[LOADED_WORLD_SIZE][LOADED_WORLD_SIZE][LOADED_WORLD_SIZE];
   V3i origin;
+  V3i wrap_break;
   WorldRenderState render_state;
 };
 
