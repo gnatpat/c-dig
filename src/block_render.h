@@ -1,4 +1,6 @@
-// Note: this file is not generated.
+// This file relates to generated/block_render.cpp, but it's not generated. Potentially the inline functions below
+// should live in the generated file? And that this file should be generated too?
+
 inline void pushVertex(ChunkVertex** vertex_cursor, V3 vertex, V3 colour, V3 normal) {
   **vertex_cursor = { vertex, colour, normal };
   (*vertex_cursor)++;
@@ -16,4 +18,4 @@ inline void pushSquare(ChunkVertex** vertex_cursor, V3 v1, V3 v2, V3 v3, V3 v4, 
 }
 
 void pushBlockVertices(ChunkVertex **vertex_cursor, Chunk *chunk, LoadedWorld *world, int x, int y, int z, BlockShape block_shape);
-inline bool* getBlockSideOcclusion(BlockShape block_shape, Direction side);
+inline bool *getBlockSideOcclusion(BlockShape block_shape, Direction side);

@@ -358,7 +358,8 @@ def main():
                     push_function = 'pushTriangle'
                 else:
                     push_function = 'pushSquare'
-                f.write(f"{push_function}(vertex_cursor, {', '.join(slope.vertices)}, GREEN, {direction_to_c_string(slope.normal)});\n")
+                colour = 'GREEN' if slope.normal[1] == 1 else 'BETH'
+                f.write(f"{push_function}(vertex_cursor, {', '.join(slope.vertices)}, {colour}, {direction_to_c_string(slope.normal)});\n")
             f.write("break;\n")
         f.write("case BLOCK_SHAPE_COUNT:\nbreak;\n")
         f.write("}\n")
