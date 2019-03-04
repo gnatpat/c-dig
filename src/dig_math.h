@@ -2,6 +2,10 @@ float clamp(float lower, float x, float upper) {
   return fminf(fmaxf(lower, x), upper);
 }
 
+float fractional_part(float x) {
+  return x - int(x);
+}
+
 /**************\
  * QUATERNION *
 \**************/
@@ -291,6 +295,9 @@ inline void printV3(V3 v) {
   printf("[ %2.2f, %2.2f, %2.2f ]\n", v.x, v.y, v.z);
 }
 
+inline V3i toV3i(V3 v) {
+  return {int(v.x), int(v.y), int(v.z)};
+}
 
 // operators
 

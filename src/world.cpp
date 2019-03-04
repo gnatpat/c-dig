@@ -6,13 +6,17 @@ Block getBlockAt(LoadedWorld* world, V3i pos) {
   V3i chunk_pos = loaded_pos / CHUNK_SIZE;
   V3i in_chunk_pos = loaded_pos % CHUNK_SIZE;
   if(loaded_pos.x < 0 or loaded_pos.y < 0 or loaded_pos.z < 0 or
-     chunk_pos.x >= LOADED_WORLD_SIZE or chunk_pos.y >= LOADED_WORLD_SIZE or chunk_pos.z >= LOADED_WORLD_SIZE) {
+    chunk_pos.x >= LOADED_WORLD_SIZE or chunk_pos.y >= LOADED_WORLD_SIZE or chunk_pos.z >= LOADED_WORLD_SIZE) {
     return OOB_BLOCK;
   }
   Chunk* chunk = getChunkRelativeToLoadedWorld(world, chunk_pos);
   return getBlockAt(chunk, in_chunk_pos);
 }
 
+bool isPointAir(LoadedWorld* world, V3 pos) {
+  BlockShape shape = getBlockAt(world, toV3i(pos)).block_shape;
+  return isPointAir(shape, fractional_part(pos.x), fractional_part(pos.y), fractional_part(pos.z));
+}
 
 void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
   // We should assert we have the lock here.
@@ -65,9 +69,7 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4* vi
             fillChunkVao(c);
             // The break here is missing on purpose, so that a Chunk with a new VAO is rendered.
           case OKAY:
-            Matrix4x4 model = translate(v3((x - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                           (y - LOADED_WORLD_SIZE/2) * CHUNK_SIZE,
-                                           (z - LOADED_WORLD_SIZE/2) * CHUNK_SIZE));
+            Matrix4x4 model = translate(v3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE));
             model *= translate(toV3(loaded_world->origin));
             transformLocation = glGetUniformLocation(terrain_shader, "model");
             glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);

@@ -3,6 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "block.cpp"
 #include "block_viewer.cpp"
 #include "chunk.cpp"
 #include "input.cpp"
@@ -96,7 +97,7 @@ int main(void) {
     if (block_viewer_mode) {
       updateBlockViewer(block_viewer_data);
     } else {
-      updatePlayer(&game_data->player, delta);
+      updatePlayer(&game_data->player, delta, &game_data->loaded_world);
     }
 
     // RENDER
@@ -112,7 +113,8 @@ int main(void) {
       Matrix4x4 view = identity();
       view *= pitch_rotation;
       view *= yaw_rotation;
-      view *= translate(game_data->player.position);
+      view *= translate(-game_data->player.position);
+      view *= translate(v3(0, -PLAYER_HEIGHT, 0));
 
       float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
       Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);

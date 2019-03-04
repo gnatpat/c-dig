@@ -8,14 +8,17 @@ typedef pthread_cond_t MutexCondition;
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
-const int CHUNK_SIZE = 16;
-const int LOADED_WORLD_SIZE = 16;
+const int CHUNK_SIZE = 12;
+const int LOADED_WORLD_SIZE = 12;
 
 const float SQRT2 = 1.4142136;
 const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
 const float SQRT3 = sqrt(3);
 const float ONE_OVER_SQRT3 = 1.0 / SQRT3;
 
+const float GRAVITY = 40;
+const float MAX_Y_SPEED = 100;
+const float PLAYER_HEIGHT = 1.5;
 
 union Matrix4x4 {
   float seq[16];
@@ -94,6 +97,7 @@ enum InputKey {
   PLAYER_MOVE_LEFT_KEY,
   PLAYER_MOVE_RIGHT_KEY,
   SWITCH_TO_BLOCK_VIEWER_KEY,
+  SWITCH_TO_FLYING_MODE_KEY,
   QUIT_KEY,
 
   INPUT_KEY_COUNT
@@ -246,6 +250,8 @@ struct Player {
   float pitch;
   float yaw;
   V3 facing;
+  bool flying;
+  float y_speed;
 };
 
 struct GameData {

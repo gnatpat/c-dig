@@ -12,6 +12,7 @@
 
 #include "defs.h"
 
+#include "block.h"
 #include "block_render.h"
 #include "block_viewer.h"
 #include "chunk.h"
