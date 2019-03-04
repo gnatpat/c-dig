@@ -2,12 +2,15 @@ void initPlayer(Player* player) {
   player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
   player->pitch = 0.0f;
   player->yaw = 0.0f;
-  player->y_speed = 0.0f;
+  player->speed = v3(0, 0, 0);
 }
 
 
-float PLAYER_SPEED = 10;
-float PLAYER_FLYING_SPEED = 70;
+float PLAYER_ACCELERATION_SPEED = 200.0f;
+float PLAYER_FRICTION = 0.96f;
+float PLAYER_JUMP_SPEED = 20.0f;
+float PLAYER_JUMP_TIME = 0.1f;
+float PLAYER_FLYING_SPEED = 70.0f;
 
 // TODO - at some point, these need to be user defined settings
 float PLAYER_YAW_LOOK_SENSITIVITY = 0.01;
@@ -47,35 +50,64 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     }
     player->position += normalise(movement_direction) * PLAYER_FLYING_SPEED * dt;
   } else {
-    V3 movement_direction = v3(0, 0, 0);
+    V3 acceleration_direction = v3(0, 0, 0);
     if (isKeyDown(PLAYER_MOVE_FORWARD_KEY)) {
-      movement_direction += xz_facing;
+      acceleration_direction += xz_facing;
     }
     if (isKeyDown(PLAYER_MOVE_BACKWARD_KEY)) {
-      movement_direction -= xz_facing;
+      acceleration_direction -= xz_facing;
     }
     if (isKeyDown(PLAYER_MOVE_LEFT_KEY)) {
-      movement_direction += player_left;
+      acceleration_direction += player_left;
     }
     if (isKeyDown(PLAYER_MOVE_RIGHT_KEY)) {
-      movement_direction -= player_left;
+      acceleration_direction -= player_left;
     }
 
-    movement_direction = normalise(movement_direction) * PLAYER_SPEED * dt;
+    acceleration_direction = normalise(acceleration_direction) * PLAYER_ACCELERATION_SPEED * dt;
+    player->speed += acceleration_direction;
+    player->speed.x *= PLAYER_FRICTION;
+    player->speed.z *= PLAYER_FRICTION;
 
-    V3 slightly_below_player = player->position - v3(0, -0.0001f, 0);
+    V3 slightly_below_player = player->position - v3(0, 0.0001f, 0);
     if (isPointAir(world, slightly_below_player)) {
-      player->y_speed -= GRAVITY * dt;
-      player->y_speed = fmaxf(-MAX_Y_SPEED, player->y_speed);
+      player->speed.y -= GRAVITY * dt;
+      player->speed.y = fmaxf(-MAX_Y_SPEED, player->speed.y);
+      if (isKeyDown(PLAYER_JUMP_KEY)) {
+        if (player->jump_timer > 0.0f) {
+          player->jump_timer -= dt;
+          player->speed.y = PLAYER_JUMP_SPEED;
+        }
+      } else {
+        player->jump_timer = 0.0;
+      }
+    } else {
+      player->jump_timer = PLAYER_JUMP_TIME;
+      if (isKeyDown(PLAYER_JUMP_KEY)) {
+        player->speed.y = PLAYER_JUMP_SPEED;
+      } else {
+        player->speed.y = 0.0f;
+      }
     }
 
-    float y_direction = player->y_speed * dt;
-    movement_direction.y = y_direction;
+    V3 movement_direction = player->speed * dt;
 
     V3 current_pos = player->position;
-    do {
-      V3 step = lenSq(movement_direction) > 1 ? normalise(movement_direction) : movement_direction;
-      current_pos += movement_direction;
+    while (len(movement_direction) > 0.0001) {
+      V3 next_whole_int = floor(current_pos) + 0.5 + copysign(v3(0.5, 0.5, 0.5), movement_direction);
+      printf("Current pos: ");
+      printV3(current_pos);
+      printf("Next whole int: ");
+      printV3(next_whole_int);
+      V3 dist = (next_whole_int - current_pos) / normalise(movement_direction);
+      printf("Distance: ");
+      printV3(dist);
+      float step_dist = min(dist);
+      if(step_dist == 0.0) {
+        step_dist = 0.01;
+      } printf("%.2f\n", step_dist);
+      V3 step = lenSq(movement_direction) > step_dist ? normalise(movement_direction) * step_dist : movement_direction;
+      current_pos += step;
       movement_direction -= step;
 
       float block_height = getBlockHeightAtPoint(getBlockAt(world, toV3i(current_pos)).block_shape,
@@ -84,16 +116,11 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
       if(fractional_part(current_pos.y) < block_height) {
         current_pos.y = int(current_pos.y) + block_height;
         movement_direction.y = 0.0f;
-        player->y_speed = 0.0f;
+        player->speed.y = 0.0f;
       }
-    } while (len(movement_direction) > 0.000001);
+    }
     player->position = current_pos;
   }
-  /*float distance_left = PLAYER_SPEED;
-  while(distance_left >= 0) {
-    
-
-  }*/
 }
 
 

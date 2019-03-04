@@ -32,6 +32,7 @@ void initInputKeyMappings() {
   key_mappings[PLAYER_MOVE_BACKWARD_KEY] = GLFW_KEY_S;
   key_mappings[PLAYER_MOVE_LEFT_KEY] = GLFW_KEY_A;
   key_mappings[PLAYER_MOVE_RIGHT_KEY] = GLFW_KEY_D;
+  key_mappings[PLAYER_JUMP_KEY] = GLFW_KEY_SPACE;
   key_mappings[SWITCH_TO_BLOCK_VIEWER_KEY] = GLFW_KEY_B;
   key_mappings[SWITCH_TO_FLYING_MODE_KEY] = GLFW_KEY_F;
   key_mappings[QUIT_KEY] = GLFW_KEY_Q;

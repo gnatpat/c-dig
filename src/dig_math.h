@@ -340,6 +340,22 @@ inline V3 operator-(V3 v) {
   return result;
 }
 
+inline V3 operator/(V3 v, V3 u) {
+  V3 result;
+
+  result.x = v.x / u.x;
+  result.y = v.y / u.y;
+  result.z = v.z / u.z;
+  
+  return result;
+}
+
+inline V3 & operator/=(V3 &v, V3 u) {
+  v = v/u;
+  return v;
+}
+
+
 // V3 and float operations
 
 inline V3 operator+(float a, V3 v) {
@@ -429,6 +445,9 @@ inline float len(V3 v) {
   return sqrt(lenSq(v));
 }
 
+inline float min(V3 v) {
+  return fminf(fminf(v.x, v.y), v.z);
+}
 
 inline V3 normalise(V3 v) {
   float length = len(v);
@@ -438,12 +457,22 @@ inline V3 normalise(V3 v) {
   return v / length;
 }
 
+inline V3 floor(V3 v) {
+  return v3(floor(v.x), floor(v.y), floor(v.z));
+}
+
 // vector vector
 
 inline V3 cross(V3 a, V3 b) {
   return v3(a.y * b.z - a.z * b.y,
             a.z * b.x - a.x * b.z,
             a.x * b.y - a.y * b.x);
+}
+
+inline V3 copysign(V3 magnitude, V3 sign) {
+  return v3(copysignf(magnitude.x, sign.x),
+            copysignf(magnitude.y, sign.y),
+            copysignf(magnitude.z, sign.z));
 }
 
 /***************\

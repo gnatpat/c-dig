@@ -16,9 +16,9 @@ const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
 const float SQRT3 = sqrt(3);
 const float ONE_OVER_SQRT3 = 1.0 / SQRT3;
 
-const float GRAVITY = 40;
-const float MAX_Y_SPEED = 100;
-const float PLAYER_HEIGHT = 1.5;
+const float GRAVITY = 100;
+const float MAX_Y_SPEED = 200;
+const float PLAYER_HEIGHT = 1.8;
 
 union Matrix4x4 {
   float seq[16];
@@ -96,6 +96,7 @@ enum InputKey {
   PLAYER_MOVE_BACKWARD_KEY,
   PLAYER_MOVE_LEFT_KEY,
   PLAYER_MOVE_RIGHT_KEY,
+  PLAYER_JUMP_KEY,
   SWITCH_TO_BLOCK_VIEWER_KEY,
   SWITCH_TO_FLYING_MODE_KEY,
   QUIT_KEY,
@@ -251,7 +252,8 @@ struct Player {
   float yaw;
   V3 facing;
   bool flying;
-  float y_speed;
+  V3 speed;
+  float jump_timer;
 };
 
 struct GameData {
