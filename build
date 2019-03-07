@@ -1,4 +1,5 @@
 ./regen_tags
 # For now, we'll regenerate the render code every build. This might have to change though.
+mkdir -p src/generated
 python3 py/generate_block_render_code.py
 g++ src/main.cpp include/glad.c -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -isystem include --std=c++11 -g -o dig -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual -Werror
