@@ -101,8 +101,8 @@ void initSphereChunk(Chunk* c) {
   c->blocks[2][0][0].block_shape = NEG_POS_POS_CORNER;
 }
 
-float AMPLITUDE = 0.1;
-float FREQUENCY = 0.01;
+float AMPLITUDE = 0.2;
+float FREQUENCY = 0.02;
 
 void initChunk(Chunk* c) {
   int corner_heights[CHUNK_SIZE+1][CHUNK_SIZE+1];

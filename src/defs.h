@@ -8,8 +8,8 @@ typedef pthread_cond_t MutexCondition;
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
-const int CHUNK_SIZE = 12;
-const int LOADED_WORLD_SIZE = 12;
+const int CHUNK_SIZE = 16;
+const int LOADED_WORLD_SIZE = 16;
 
 const float SQRT2 = 1.4142136;
 const float ONE_OVER_SQRT2 = 1.0 / SQRT2;

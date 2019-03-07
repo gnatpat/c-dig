@@ -3,7 +3,7 @@ float clamp(float lower, float x, float upper) {
 }
 
 float fractional_part(float x) {
-  return x - int(x);
+  return x - floor(x);
 }
 
 /**************\
@@ -340,6 +340,21 @@ inline V3 operator-(V3 v) {
   return result;
 }
 
+inline V3 operator*(V3 v, V3 u) {
+  V3 result;
+
+  result.x = v.x * u.x;
+  result.y = v.y * u.y;
+  result.z = v.z * u.z;
+  
+  return result;
+}
+
+inline V3 & operator*=(V3 &v, V3 u) {
+  v = v*u;
+  return v;
+}
+
 inline V3 operator/(V3 v, V3 u) {
   V3 result;
 
@@ -354,7 +369,6 @@ inline V3 & operator/=(V3 &v, V3 u) {
   v = v/u;
   return v;
 }
-
 
 // V3 and float operations
 
