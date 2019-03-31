@@ -24,7 +24,7 @@ void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
   c->origin = world->origin + ((in_memory_pos - world->wrap_break + LOADED_WORLD_SIZE) % LOADED_WORLD_SIZE) * CHUNK_SIZE;
   c->render_data.state = NO_RENDER_DATA;
   if (c->render_data.vertices != NULL) {
-    free(chunk->render.vertices);
+    free(c->render_data.vertices);
   }
   initChunk(c);
   addToLinkedList(&world->render_state.new_chunks, c);
@@ -99,7 +99,7 @@ void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
   lockMutex(&loaded_world->render_state.new_chunk_lock);
   for(int i = 0; i < LOADED_WORLD_SIZE; i++) {
     for(int j = 0; j < LOADED_WORLD_SIZE; j++) {
-      int x, y, z;
+      int x = 0, y = 0, z = 0;
       if(diff.x != 0) {
         if(diff.x == -1) {
           x = loaded_world->wrap_break.x;

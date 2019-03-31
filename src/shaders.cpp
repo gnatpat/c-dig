@@ -7,7 +7,8 @@ GLuint compileShaderFile(const char* path, const GLenum shaderType) {
 
   int len = getFileSize(fp);
   char* shader_text = (char*)malloc(len * sizeof(char));
-  fread(shader_text, sizeof(char), len, fp);
+  size_t size_read = fread(shader_text, sizeof(char), len, fp);
+  assert(size_read == (size_t)len);
 
   glShaderSource(shader, 1, &shader_text, &len);
   free(shader_text);

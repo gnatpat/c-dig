@@ -113,12 +113,12 @@ struct Sprite {
 struct Triangle {
   V3 vertices[3];
   V3 normal;
-}
+};
 
 struct BlockModel {
   Triangle mesh[14];
   int triangle_count;
-}
+};
 
 enum Direction {
   POS_Z,
@@ -160,6 +160,15 @@ enum XZDirection {
 //    bool sloping_down;
 //  } slope_direction;
 //};
+
+enum FaceShape {
+  FULL,
+  TOP_RIGHT,
+  TOP_LEFT,
+  BOTTOM_LEFT,
+  BOTTOM_RIGHT
+};
+
 
 enum BlockShape {
   AIR,
@@ -270,4 +279,4 @@ struct BlockViewerData {
   LoadedWorld empty_world;
 };
 
-#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic error "-Wpedantic"

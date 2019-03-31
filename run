@@ -1,0 +1,5 @@
+set -eou pipefail
+
+rm -rf bin
+./scripts/build
+./bin/dig
