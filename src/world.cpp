@@ -23,6 +23,9 @@ void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
   Chunk* c = &world->chunks[in_memory_pos.x][in_memory_pos.y][in_memory_pos.z];
   c->origin = world->origin + ((in_memory_pos - world->wrap_break + LOADED_WORLD_SIZE) % LOADED_WORLD_SIZE) * CHUNK_SIZE;
   c->render_data.state = NO_RENDER_DATA;
+  if (c->render_data.vertices != NULL) {
+    free(chunk->render.vertices);
+  }
   initChunk(c);
   addToLinkedList(&world->render_state.new_chunks, c);
 }
