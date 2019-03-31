@@ -57,8 +57,6 @@ void fillChunkVao(Chunk* chunk) {
 
   glBindVertexArray(0);
   glDeleteBuffers(1, &vbo);
-
-  free(chunk->render_data.vertices);
 }
 
 

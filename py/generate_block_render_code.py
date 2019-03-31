@@ -289,6 +289,10 @@ def main():
             # diagonals
             list(all_four_slopes(["XyZ", "XYZ", "xYz", "xyz"], (-1, 0, 1))))
 
+    for name, sides in zip(BLOCK_SHAPE_NAMES, chunk(side_data, 6)):
+        print(name, sides)
+
+
     new_bits = []
     for i, side in enumerate(side_data):
         if(i % 6 < 4):

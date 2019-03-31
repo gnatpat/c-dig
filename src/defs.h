@@ -110,6 +110,16 @@ struct Sprite {
   int index;
 };
 
+struct Triangle {
+  V3 vertices[3];
+  V3 normal;
+}
+
+struct BlockModel {
+  Triangle mesh[14];
+  int triangle_count;
+}
+
 enum Direction {
   POS_Z,
   POS_X,
@@ -184,14 +194,6 @@ enum BlockShape {
   POS_POS_DIAGONAL,
 
   BLOCK_SHAPE_COUNT
-};
-
-enum FaceShape {
-  FULL,
-  TOP_RIGHT,
-  TOP_LEFT,
-  BOTTOM_LEFT,
-  BOTTOM_RIGHT
 };
 
 struct ChunkVertex {
