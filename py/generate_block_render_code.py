@@ -4,6 +4,8 @@ import subprocess
 from typing import NamedTuple, List, Tuple
 from enum import IntEnum, Enum
 
+from jinja2 import Template
+
 class DirectionOrder(IntEnum):
     POS_Z = 0
     POS_X = 1
@@ -54,6 +56,11 @@ class SideType(NamedTuple):
 class Slope(NamedTuple):
     vertices: str
     normal: Tuple[float]
+
+
+class BlockModel(NamedTuple):
+    triangles: List[str]
+    count: int
 
 
 SIDE_TYPE_DATA = [
@@ -153,8 +160,21 @@ def all_four_slopes(vertices, normal):
     for direction in range(4):
         yield Slope(list(map(lambda v: rotate_vertex_string_around_xz(v, direction), vertices)), rotate_direction_around_xz(normal, direction))
 
+
 def direction_to_c_string(direction):
     return f"v3({', '.join(str(d) for d in direction)})"
+
+
+def vertex_string_to_v3(vertex_string):
+    return "v3("+", ".join("1" if c.isupper() else "0" for c in vertex_string)+")"
+
+
+def to_triangles(vertices, normal):
+    if len(vertices) == 4:
+        return (to_triangles([vertices[0], vertices[1], vertices[2]], normal) +
+                to_triangles([vertices[0], vertices[2], vertices[3]], normal))
+    vertices = [vertex_string_to_v3(v) for v in vertices]
+    return ['{ { ' + ', '.join(vertices) + ' }, ' + normal + ' }']
 
 
 def air():
@@ -289,9 +309,23 @@ def main():
             # diagonals
             list(all_four_slopes(["XyZ", "XYZ", "xYz", "xyz"], (-1, 0, 1))))
 
-    for name, sides in zip(BLOCK_SHAPE_NAMES, chunk(side_data, 6)):
-        print(name, sides)
-
+    block_models = []
+    for i, (name, sides) in enumerate(zip(BLOCK_SHAPE_NAMES, chunk(side_data, 6))):
+        triangles = []
+        for direction, side_type in zip(DirectionOrder, sides):
+            if side_type == EMPTY_SIDE:
+                continue
+            if side_type == FULL_SIDE:
+                face_vertices = FACE_VERTICES[int(direction)]
+            else:
+                face_vertices = [v for v, b in zip(FACE_VERTICES[direction], SIDE_TYPE_DATA[side_type].occlusion[1:]) if not b]
+            triangles += to_triangles(face_vertices, NORMALS[direction])
+        if slopes[i]:
+            face_vertices = slopes[i].vertices
+            triangles += to_triangles(face_vertices, direction_to_c_string(slopes[i].normal))
+        block_models.append(BlockModel(', '.join(triangles), len(triangles)))
+    block_models_contents = Template(open('py/templates/block_models.h').read()).render(blocks=block_models)
+    open('src/generated/block_models.h', 'w').write(block_models_contents)
 
     new_bits = []
     for i, side in enumerate(side_data):
@@ -370,6 +404,7 @@ def main():
         f.write("}\n")
 
     subprocess.run(['clang-format', '-i', 'src/generated/block_render.cpp'])
+    subprocess.run(['clang-format', '-i', 'src/generated/block_models.h'])
 
 
 if __name__ == "__main__":

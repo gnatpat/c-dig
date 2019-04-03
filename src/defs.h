@@ -8,8 +8,8 @@ typedef pthread_cond_t MutexCondition;
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
-const int CHUNK_SIZE = 16;
-const int LOADED_WORLD_SIZE = 16;
+const int CHUNK_SIZE = 8;
+const int LOADED_WORLD_SIZE = 8;
 
 const float SQRT2 = 1.4142136;
 const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
@@ -99,6 +99,7 @@ enum InputKey {
   PLAYER_JUMP_KEY,
   SWITCH_TO_BLOCK_VIEWER_KEY,
   SWITCH_TO_FLYING_MODE_KEY,
+  SWITCH_TO_DEBUG_MODE_KEY,
   QUIT_KEY,
 
   INPUT_KEY_COUNT
@@ -278,5 +279,18 @@ struct BlockViewerData {
   BlockShape block_shape;
   LoadedWorld empty_world;
 };
+
+struct DebugTriangles {
+  unsigned int vao;
+  unsigned int vbo;
+  Triangle* triangles;
+  V3* vertices;
+  int triangle_count;
+};
+
+struct DebugData {
+  DebugTriangles mesh_around_player;
+};
+
 
 #pragma GCC diagnostic error "-Wpedantic"

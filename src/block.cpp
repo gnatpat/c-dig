@@ -63,3 +63,16 @@ bool isPointAir(BlockShape shape, float x, float y, float z) {
   return y >= getBlockHeightAtPoint(shape, x, z);
 }
 
+int getBlockMesh(Triangle* mesh_buffer, Block block, V3i int_pos) {
+  V3 pos = toV3(int_pos);
+  BlockModel* model = &BLOCK_MODELS[block.block_shape];
+  int count = model->triangle_count;
+  for (int i = 0; i < count; i++) {
+    *mesh_buffer = model->mesh[i];
+    mesh_buffer->vertices[0] += pos;
+    mesh_buffer->vertices[1] += pos;
+    mesh_buffer->vertices[2] += pos;
+    mesh_buffer++;
+  }
+  return count;
+}

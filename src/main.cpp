@@ -6,6 +6,7 @@
 #include "block.cpp"
 #include "block_viewer.cpp"
 #include "chunk.cpp"
+#include "debug.cpp"
 #include "input.cpp"
 #include "models.cpp"
 #include "noise.cpp"
@@ -50,6 +51,8 @@ int main(void) {
 
   GLuint terrain_shader = compileShaderOrDie("resources/shaders/shader_no_texture.vs",
                                                         "resources/shaders/shader_no_texture.fs");
+  GLuint test_shader = compileShaderOrDie("resources/shaders/shader_no_col.vs",
+                                                        "resources/shaders/shader_no_col.fs");
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initWorld(&game_data->loaded_world);
@@ -64,6 +67,10 @@ int main(void) {
   BlockViewerData* block_viewer_data = (BlockViewerData*) malloc(sizeof(BlockViewerData));
   initBlockViewer(block_viewer_data);
 
+  bool debug_mode = false;
+  DebugData* debug_data = (DebugData*) malloc(sizeof(DebugData));
+  initDebugData(debug_data);
+
   float t = 0.0;
 
   int frames = 0;
@@ -71,6 +78,7 @@ int main(void) {
 
   struct timespec old_time, new_time;
   clock_gettime(CLOCK_MONOTONIC_RAW, &old_time);
+
   while(!glfwWindowShouldClose(window) && !isKeyDown(QUIT_KEY))
   {
     clock_gettime(CLOCK_MONOTONIC_RAW, &new_time);
@@ -80,7 +88,7 @@ int main(void) {
 
     frames += 1;
     acc += delta;
-    if (acc >= 0.5) {
+    if (acc >= 0.1) {
       printf("fps: %2.2f\n", frames/acc);
       acc = 0;
       frames = 0;
@@ -97,7 +105,15 @@ int main(void) {
     if (block_viewer_mode) {
       updateBlockViewer(block_viewer_data);
     } else {
+      if (isKeyPressed(SWITCH_TO_DEBUG_MODE_KEY)) {
+        debug_mode = !debug_mode;
+      }
+
       updatePlayer(&game_data->player, delta, &game_data->loaded_world);
+
+      if (debug_mode) {
+        debugMeshAroundPlayer(&debug_data->mesh_around_player, game_data);
+      }
     }
 
     // RENDER
@@ -119,7 +135,11 @@ int main(void) {
       float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
       Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
 
-      renderWorld(&game_data->loaded_world, terrain_shader, &view, &projection);
+      renderWorld(&game_data->loaded_world, terrain_shader, view, projection);
+
+      if(debug_mode) {
+        renderDebug(debug_data, test_shader, view, projection);
+      }
     }
 
     glfwSwapBuffers(window);

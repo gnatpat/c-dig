@@ -32,10 +32,12 @@ bool initOpenGLAndCreateWindow(GLFWwindow** window) {
   glfwSetKeyCallback(*window, keyCallback);
   glfwSetCursorPosCallback(*window, cursorPositionCallback);
   glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  //glfwSwapInterval(0);
+  glfwSwapInterval(0);
   
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
   glClearColor(0.2f, 0.5f, 1.0f, 1.0f);
 

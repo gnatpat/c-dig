@@ -1,2 +1,9 @@
-apt install clang-format
-apt install ctags
+set -euo pipefail
+
+sudo apt install clang-format
+sudo apt install ctags
+sudo apt install virtualenv
+virtualenv -p python3 .env
+VIRTUAL_ENV_DISABLE_PROMPT=true . .env/bin/activate
+pip install -r py/requirements.txt
+deactivate

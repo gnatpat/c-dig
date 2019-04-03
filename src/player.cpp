@@ -95,20 +95,12 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     V3 current_pos = player->position;
     while (len(movement_direction) > 0.0001) {
       V3 next_whole_int = floor(current_pos) + 0.5 + copysign(v3(0.5, 0.5, 0.5), movement_direction);
-      printf("Current pos: ");
-      printV3(current_pos);
-      printf("Next whole int: ");
-      printV3(next_whole_int);
       V3 dist = (next_whole_int - current_pos) / normalise(movement_direction);
-      printf("Distance: ");
-      printV3(dist);
       float step_dist = min(dist);
       if(step_dist == 0.0) {
         step_dist = 0.01;
-      } printf("%.2f\n", step_dist);
+      }
       V3 step = len(movement_direction) > step_dist ? normalise(movement_direction) * step_dist : movement_direction;
-      printf("Step: ");
-      printV3(step);
       step_dist = len(step);
       current_pos += step;
       movement_direction -= step;
@@ -119,14 +111,12 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
       if(fractional_part(current_pos.y) < block_height) {
         float y_diff = block_height - fractional_part(current_pos.y);
         V3 potential_endpoint = current_pos + v3(0, y_diff, 0);
-        printf("y_diff: %f, step_dist: %f\n", y_diff, step_dist);
         if(y_diff < 2 * step_dist && isPointAir(world, potential_endpoint+v3(0, 0.001, 0))) {
           current_pos.y = int(current_pos.y) + block_height;
           movement_direction.y = 0.0f;
           player->speed.y = 0.0f;
         } else {
           V3i block_diff = toV3i(current_pos) - toV3i(current_pos - step);
-          printV3i(block_diff);
           movement_direction += movement_direction * -toV3(block_diff);
           current_pos -= step;
         }

@@ -52,12 +52,12 @@ void initWorld(LoadedWorld* world) {
 }
 
 
-void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4* view, Matrix4x4* projection) {
+void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4 view, Matrix4x4 projection) {
   glUseProgram(terrain_shader);
   GLuint transformLocation = glGetUniformLocation(terrain_shader, "view");
-  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)view);
+  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
   transformLocation = glGetUniformLocation(terrain_shader, "projection");
-  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)projection);
+  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
 
   for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
     for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
@@ -139,5 +139,19 @@ void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
   unlockMutex(&loaded_world->render_state.new_chunk_lock);
 }
 
+int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i pos, int cube_radius) {
+  int count = 0;
+  for (int x = 0; x < cube_radius*2; x++) {
+    for (int y = 0; y < cube_radius*2; y++) {
+      for (int z = 0; z < cube_radius*2; z++) {
+        V3i cursor = pos + v3i(x, y, z) - cube_radius;
+        int added = getBlockMesh(mesh_buffer, getBlockAt(world, cursor), cursor);
+        mesh_buffer += added;
+        count += added;
+      }
+    }
+  }
+  return count;
+}
 
 

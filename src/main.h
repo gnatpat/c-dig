@@ -17,6 +17,7 @@
 #include "block_viewer.h"
 #include "chunk.h"
 #include "colours.h"
+#include "debug.h"
 #include "dig_math.h"
 #include "input.h"
 #include "models.h"
@@ -28,3 +29,4 @@
 #include "textures.h"
 #include "utils.h"
 #include "world.h"
+#include "generated/block_models.h"
