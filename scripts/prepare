@@ -1,0 +1,10 @@
+set -euo pipefail
+
+./scripts/regen_tags
+# For now, we'll regenerate the render code every build. This might have to change though.
+mkdir -p src/generated
+mkdir -p bin/
+VIRTUAL_ENV_DISABLE_PROMPT=true . .env/bin/activate
+python py/generate_block_render_code.py
+python py/generate_test_entry.py
+deactivate

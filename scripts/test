@@ -1,0 +1,5 @@
+set -euo pipefail
+
+./scripts/prepare
+g++ src/generated/test_entry.cpp include/glad.c -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -isystem include --std=c++11 -g -o bin/test -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual -Werror
+./bin/test

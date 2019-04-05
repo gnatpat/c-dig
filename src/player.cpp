@@ -1,7 +1,10 @@
-float isPointInTriangle(Triangle t, V3 pos) {
+bool isPointInTriangle(Triangle t, V3 pos) {
   V3 axis0 = t.vertices[1] - t.vertices[0];
   V3 axis1 = t.vertices[2] - t.vertices[0];
   V3 relative_pos = pos - t.vertices[0];
+  if(dot(relative_pos, t.normal) != 0.0) {
+    return false;
+  }
 
   float axis0_dist_sq = dot(axis0, axis0);
   float axis1_dist_sq = dot(axis1, axis1);
@@ -120,7 +123,7 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
 
     V3 movement_velocity = player->speed * dt;
 
-    V3 current_pos = player->position;
+    V3 current_pos = player->position + movement_velocity;
 
     // The code below was taken from the algorithm from http://www.peroxide.dk/papers/collision/collision.pdf.
 
@@ -131,14 +134,16 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
                                                toV3i(current_pos)+v3i(1, 2, 1));
 
     V3 espace_movement_velocity = movement_velocity / v3(1, PLAYER_HEIGHT, 1);
-    V3 espace_current_pos = current_pos /= v3(1, PLAYER_HEIGHT, 1);
+    V3 espace_current_pos = current_pos / v3(1, PLAYER_HEIGHT, 1);
+    bool collision = false;
+    float earliest_t0 = 1.0f;
     for (int i = 0; i < triangle_count; i++) {
       Triangle espace_triangle = triangles[i];
       espace_triangle.vertices[0].y /= PLAYER_HEIGHT;
       espace_triangle.vertices[1].y /= PLAYER_HEIGHT;
       espace_triangle.vertices[2].y /= PLAYER_HEIGHT;
       espace_triangle.normal.y /= PLAYER_HEIGHT;
-      espace_triangle.normal = normalise(espace_triangle.normal)
+      espace_triangle.normal = normalise(espace_triangle.normal);
 
       float relative_velocity = dot(espace_triangle.normal, espace_movement_velocity);
       float signed_distance = signedDistance(espace_triangle, espace_current_pos);
@@ -161,10 +166,21 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
         continue;
       }
 
-      V3 plane_intersection_point = espace_current_pos - espace_triangle.normal + t0 * espace_movement_velocity;
+      if (t0 < earliest_t0) {
+        if(t0 == 0.0) {
+          printf("Beginning intersection?\n");
+        }
+        V3 plane_intersection_point = espace_current_pos - espace_triangle.normal + t0 * espace_movement_velocity;
+        if(isPointInTriangle(espace_triangle, plane_intersection_point)) {
+          collision = true;
+          earliest_t0 = t0;
+        }
+      }
     }
-
-
+    if (collision) {
+      current_pos += earliest_t0 * movement_velocity;
+    }
     player->position = current_pos;
+    printV3(player->position);
   }
 }
