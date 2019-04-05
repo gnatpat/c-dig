@@ -1,3 +1,31 @@
+float isPointInTriangle(Triangle t, V3 pos) {
+  V3 axis0 = t.vertices[1] - t.vertices[0];
+  V3 axis1 = t.vertices[2] - t.vertices[0];
+  V3 relative_pos = pos - t.vertices[0];
+
+  float axis0_dist_sq = dot(axis0, axis0);
+  float axis1_dist_sq = dot(axis1, axis1);
+
+  float axis_0_of_pos = dot(axis0, relative_pos);
+  float axis_1_of_pos = dot(axis1, relative_pos);
+
+  float crossover = dot(axis0, axis1);
+
+  float inv_denom = 1 / (axis0_dist_sq * axis1_dist_sq - crossover * crossover);
+  float u = (axis1_dist_sq * axis_0_of_pos - crossover * axis_1_of_pos) * inv_denom;
+  float v = (axis0_dist_sq * axis_1_of_pos - crossover * axis_0_of_pos) * inv_denom;
+
+  return u >= 0 && v >= 0 && (u + v) < 1;
+}
+
+
+float signedDistance(Triangle t, V3 p) {
+  return dot(t.normal, p) - (t.normal.x * t.vertices[0].x +
+                             t.normal.y * t.vertices[0].y +
+                             t.normal.z * t.vertices[0].z);
+}
+
+
 void initPlayer(Player* player) {
   player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
   player->pitch = 0.0f;
@@ -35,20 +63,20 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
   player->facing = rotate(pitch_rotation, xz_facing);
 
   if(player->flying) {
-    V3 movement_direction = v3(0, 0, 0);
+    V3 movement_velocity = v3(0, 0, 0);
     if (isKeyDown(PLAYER_MOVE_FORWARD_KEY)) {
-      movement_direction += player->facing;
+      movement_velocity += player->facing;
     }
     if (isKeyDown(PLAYER_MOVE_BACKWARD_KEY)) {
-      movement_direction -= player->facing;
+      movement_velocity -= player->facing;
     }
     if (isKeyDown(PLAYER_MOVE_LEFT_KEY)) {
-      movement_direction += player_left;
+      movement_velocity += player_left;
     }
     if (isKeyDown(PLAYER_MOVE_RIGHT_KEY)) {
-      movement_direction -= player_left;
+      movement_velocity -= player_left;
     }
-    player->position += normalise(movement_direction) * PLAYER_FLYING_SPEED * dt;
+    player->position += normalise(movement_velocity) * PLAYER_FLYING_SPEED * dt;
   } else {
     V3 acceleration_direction = v3(0, 0, 0);
     if (isKeyDown(PLAYER_MOVE_FORWARD_KEY)) {
@@ -90,40 +118,53 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
       }
     }
 
-    V3 movement_direction = player->speed * dt;
+    V3 movement_velocity = player->speed * dt;
 
     V3 current_pos = player->position;
-    while (len(movement_direction) > 0.0001) {
-      V3 next_whole_int = floor(current_pos) + 0.5 + copysign(v3(0.5, 0.5, 0.5), movement_direction);
-      V3 dist = (next_whole_int - current_pos) / normalise(movement_direction);
-      float step_dist = min(dist);
-      if(step_dist == 0.0) {
-        step_dist = 0.01;
-      }
-      V3 step = len(movement_direction) > step_dist ? normalise(movement_direction) * step_dist : movement_direction;
-      step_dist = len(step);
-      current_pos += step;
-      movement_direction -= step;
 
-      float block_height = getBlockHeightAtPoint(getBlockAt(world, toV3i(current_pos)).block_shape,
-                                                 fractional_part(current_pos.x),
-                                                 fractional_part(current_pos.z));
-      if(fractional_part(current_pos.y) < block_height) {
-        float y_diff = block_height - fractional_part(current_pos.y);
-        V3 potential_endpoint = current_pos + v3(0, y_diff, 0);
-        if(y_diff < 2 * step_dist && isPointAir(world, potential_endpoint+v3(0, 0.001, 0))) {
-          current_pos.y = int(current_pos.y) + block_height;
-          movement_direction.y = 0.0f;
-          player->speed.y = 0.0f;
+    // The code below was taken from the algorithm from http://www.peroxide.dk/papers/collision/collision.pdf.
+
+    Triangle triangles[500];
+    int triangle_count = getMeshAroundPosition(&triangles[0],
+                                               world,
+                                               toV3i(current_pos)-v3i(1, 1, 1),
+                                               toV3i(current_pos)+v3i(1, 2, 1));
+
+    V3 espace_movement_velocity = movement_velocity / v3(1, PLAYER_HEIGHT, 1);
+    V3 espace_current_pos = current_pos /= v3(1, PLAYER_HEIGHT, 1);
+    for (int i = 0; i < triangle_count; i++) {
+      Triangle espace_triangle = triangles[i];
+      espace_triangle.vertices[0].y /= PLAYER_HEIGHT;
+      espace_triangle.vertices[1].y /= PLAYER_HEIGHT;
+      espace_triangle.vertices[2].y /= PLAYER_HEIGHT;
+      espace_triangle.normal.y /= PLAYER_HEIGHT;
+      espace_triangle.normal = normalise(espace_triangle.normal)
+
+      float relative_velocity = dot(espace_triangle.normal, espace_movement_velocity);
+      float signed_distance = signedDistance(espace_triangle, espace_current_pos);
+      float t0, t1;
+      if (relative_velocity == 0.0) {
+        if (fabsf(signed_distance) < 1.0) {
+          t0 = 0.0;
+          t1 = 1.0;
         } else {
-          V3i block_diff = toV3i(current_pos) - toV3i(current_pos - step);
-          movement_direction += movement_direction * -toV3(block_diff);
-          current_pos -= step;
+          continue;
         }
+      } else {
+        t0 = (1 - signed_distance) / (relative_velocity);
+        t1 = (-1 - signed_distance) / (relative_velocity);
       }
+      if (t0 > t1) {
+        continue;
+      }
+      if ((t0 < 0.0 || t0 > 1.0) && (t1 < 0.0 || t1 > 1.0)) {
+        continue;
+      }
+
+      V3 plane_intersection_point = espace_current_pos - espace_triangle.normal + t0 * espace_movement_velocity;
     }
+
+
     player->position = current_pos;
   }
 }
-
-
