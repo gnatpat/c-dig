@@ -139,12 +139,12 @@ void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
   unlockMutex(&loaded_world->render_state.new_chunk_lock);
 }
 
-int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i pos, int cube_radius) {
+int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i from, V3i to) {
   int count = 0;
-  for (int x = 0; x < cube_radius*2; x++) {
-    for (int y = 0; y < cube_radius*2; y++) {
-      for (int z = 0; z < cube_radius*2; z++) {
-        V3i cursor = pos + v3i(x, y, z) - cube_radius;
+  for (int x = from.x; x <= to.x; x++) {
+    for (int y = from.y; y <= to.y; y++) {
+      for (int z = from.z; z <= to.z; z++) {
+        V3i cursor = v3i(x, y, z);
         int added = getBlockMesh(mesh_buffer, getBlockAt(world, cursor), cursor);
         mesh_buffer += added;
         count += added;

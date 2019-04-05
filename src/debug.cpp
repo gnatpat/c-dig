@@ -13,8 +13,8 @@ void initDebugData(DebugData* debug_data) {
 void debugMeshAroundPlayer(DebugTriangles* debug_triangles, GameData* game_data) {
   debug_triangles->triangle_count = getMeshAroundPosition(debug_triangles->triangles,
                                                           &game_data->loaded_world,
-                                                          toV3i(game_data->player.position),
-                                                          2);
+                                                          toV3i(game_data->player.position)-v3i(1, 1, 1),
+                                                          toV3i(game_data->player.position)+v3i(1, 2, 1));
   V3* cursor = debug_triangles->vertices;
   for(int i = 0; i < debug_triangles->triangle_count; i++) {
     Triangle* triangle = debug_triangles->triangles + i;
