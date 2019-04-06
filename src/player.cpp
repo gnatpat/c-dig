@@ -2,9 +2,6 @@ bool isPointInTriangle(Triangle t, V3 pos) {
   V3 axis0 = t.vertices[1] - t.vertices[0];
   V3 axis1 = t.vertices[2] - t.vertices[0];
   V3 relative_pos = pos - t.vertices[0];
-  if(dot(relative_pos, t.normal) != 0.0) {
-    return false;
-  }
 
   float axis0_dist_sq = dot(axis0, axis0);
   float axis1_dist_sq = dot(axis1, axis1);
@@ -28,12 +25,44 @@ float signedDistance(Triangle t, V3 p) {
                              t.normal.z * t.vertices[0].z);
 }
 
+bool getLowestRoot(float a, float b, float c, float maxR, float* root) {
+  // Check if a solution exists
+  float determinant = b*b - 4.0f*a*c;
+  // If determinant is negative it means no solutions.
+  if (determinant < 0.0f) return false;
+  // calculate the two roots: (if determinant == 0 then
+  // x1==x2 but let’s disregard that slight optimization)
+  float sqrtD = sqrt(determinant);
+  float r1 = (-b - sqrtD) / (2*a);
+  float r2 = (-b + sqrtD) / (2*a);
+  // Sort so x1 <= x2
+  if (r1 > r2) {
+    float temp = r2;
+    r2 = r1;
+    r1 = temp;
+  }
+  // Get lowest root:
+  if (r1 > 0 && r1 < maxR) {
+    *root = r1;
+    return true;
+  }
+  // It is possible that we want x2 - this can happen
+  // if x1 < 0
+  if (r2 > 0 && r2 < maxR) {
+    *root = r2;
+    return true;
+  }
+  // No (valid) solutions
+  return false;
+}
+
 
 void initPlayer(Player* player) {
   player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
   player->pitch = 0.0f;
   player->yaw = 0.0f;
   player->speed = v3(0, 0, 0);
+  initDebugTriangles(&player->collision_triangles, 100);
 }
 
 
@@ -100,7 +129,7 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     player->speed.x *= pow(PLAYER_FRICTION, dt * 400);
     player->speed.z *= pow(PLAYER_FRICTION, dt * 400);
 
-    V3 slightly_below_player = player->position - v3(0, 0.0001f, 0);
+    V3 slightly_below_player = player->position - v3(0, PLAYER_HEIGHT/2 + 0.05f, 0);
     if (isPointAir(world, slightly_below_player)) {
       player->speed.y -= GRAVITY * dt;
       player->speed.y = fmaxf(-MAX_Y_SPEED, player->speed.y);
@@ -122,27 +151,34 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     }
 
     V3 movement_velocity = player->speed * dt;
+    if(lenSq(movement_velocity) == 0.0) {
+      return;
+    }
 
     V3 current_pos = player->position + movement_velocity;
 
     // The code below was taken from the algorithm from http://www.peroxide.dk/papers/collision/collision.pdf.
 
+    V3 espace_conversion = v3(0.5, PLAYER_HEIGHT/2, 0.5);
     Triangle triangles[500];
     int triangle_count = getMeshAroundPosition(&triangles[0],
                                                world,
-                                               toV3i(current_pos)-v3i(1, 1, 1),
+                                               toV3i(current_pos)-v3i(1, 2, 1),
                                                toV3i(current_pos)+v3i(1, 2, 1));
 
-    V3 espace_movement_velocity = movement_velocity / v3(1, PLAYER_HEIGHT, 1);
-    V3 espace_current_pos = current_pos / v3(1, PLAYER_HEIGHT, 1);
+    V3 espace_movement_velocity = movement_velocity / espace_conversion;
+    V3 espace_current_pos = current_pos / espace_conversion;
     bool collision = false;
     float earliest_t0 = 1.0f;
+    Triangle collision_triangle;
+    int collision_count = 0;
+    Triangle* collisions = player->collision_triangles.triangles;
     for (int i = 0; i < triangle_count; i++) {
       Triangle espace_triangle = triangles[i];
-      espace_triangle.vertices[0].y /= PLAYER_HEIGHT;
-      espace_triangle.vertices[1].y /= PLAYER_HEIGHT;
-      espace_triangle.vertices[2].y /= PLAYER_HEIGHT;
-      espace_triangle.normal.y /= PLAYER_HEIGHT;
+      espace_triangle.vertices[0] /= espace_conversion;
+      espace_triangle.vertices[1] /= espace_conversion;
+      espace_triangle.vertices[2] /= espace_conversion;
+      espace_triangle.normal /= espace_conversion;
       espace_triangle.normal = normalise(espace_triangle.normal);
 
       float relative_velocity = dot(espace_triangle.normal, espace_movement_velocity);
@@ -167,20 +203,31 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
       }
 
       if (t0 < earliest_t0) {
-        if(t0 == 0.0) {
-          printf("Beginning intersection?\n");
-        }
         V3 plane_intersection_point = espace_current_pos - espace_triangle.normal + t0 * espace_movement_velocity;
         if(isPointInTriangle(espace_triangle, plane_intersection_point)) {
           collision = true;
           earliest_t0 = t0;
+          *(collisions + collision_count) = triangles[i];
+          collision_count++;
+          collision_triangle = triangles[i];
         }
       }
     }
     if (collision) {
+      printf("===COLLISION===\n");
+      printf("From: ");
+      printV3(current_pos);
       current_pos += earliest_t0 * movement_velocity;
+      printf("To: ");
+      printV3(current_pos);
+      printf("At %f\n", earliest_t0);
+      printV3(collision_triangle.vertices[0]);
+      printV3(collision_triangle.vertices[1]);
+      printV3(collision_triangle.vertices[2]);
+      printV3(collision_triangle.normal);
     }
     player->position = current_pos;
-    printV3(player->position);
+    player->collision_triangles.triangle_count = collision_count;
+    fillDebugTriangleRenderData(&player->collision_triangles);
   }
 }

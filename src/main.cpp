@@ -33,8 +33,8 @@ int main(void) {
 
   GLuint terrain_shader = compileShaderOrDie("resources/shaders/shader_no_texture.vs",
                                                         "resources/shaders/shader_no_texture.fs");
-  GLuint test_shader = compileShaderOrDie("resources/shaders/shader_no_col.vs",
-                                                        "resources/shaders/shader_no_col.fs");
+  GLuint debug_triangle_shader = compileShaderOrDie("resources/shaders/debug_triangles.vs",
+                                                    "resources/shaders/debug_triangles.fs");
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initWorld(&game_data->loaded_world);
@@ -70,7 +70,7 @@ int main(void) {
 
     frames += 1;
     acc += delta;
-    if (acc >= 0.1) {
+    if (acc >= 1.0) {
       printf("fps: %2.2f\n", frames/acc);
       acc = 0;
       frames = 0;
@@ -112,7 +112,7 @@ int main(void) {
       view *= pitch_rotation;
       view *= yaw_rotation;
       view *= translate(-game_data->player.position);
-      view *= translate(v3(0, -PLAYER_HEIGHT, 0));
+      view *= translate(v3(-0.0, -PLAYER_HEIGHT/2, 0.0));
 
       float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
       Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
@@ -120,8 +120,13 @@ int main(void) {
       renderWorld(&game_data->loaded_world, terrain_shader, view, projection);
 
       if(debug_mode) {
-        renderDebug(debug_data, test_shader, view, projection);
+        renderDebug(debug_data, debug_triangle_shader, view, projection);
       }
+      renderDebugTriangles(&game_data->player.collision_triangles,
+                           debug_triangle_shader,
+                           view,
+                           projection,
+                           RED);
     }
 
     glfwSwapBuffers(window);

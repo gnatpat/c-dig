@@ -78,6 +78,23 @@ struct Rectangle {
   float top;
 };
 
+struct Triangle {
+  V3 vertices[3];
+  V3 normal;
+};
+
+struct DebugTriangles {
+  unsigned int vao;
+  unsigned int vbo;
+  V3* vertices;
+  Triangle* triangles;
+  int triangle_count;
+};
+
+struct DebugData {
+  DebugTriangles mesh_around_player;
+};
+
 struct LinkedList {
   void* content;
   LinkedList* next;
@@ -109,11 +126,6 @@ enum InputKey {
 struct Sprite {
   V3 position;
   int index;
-};
-
-struct Triangle {
-  V3 vertices[3];
-  V3 normal;
 };
 
 struct BlockModel {
@@ -266,6 +278,7 @@ struct Player {
   bool flying;
   V3 speed;
   float jump_timer;
+  DebugTriangles collision_triangles;
 };
 
 struct GameData {
@@ -278,18 +291,6 @@ struct BlockViewerData {
   ChunkRenderData occlusion_render_data;
   BlockShape block_shape;
   LoadedWorld empty_world;
-};
-
-struct DebugTriangles {
-  unsigned int vao;
-  unsigned int vbo;
-  Triangle* triangles;
-  V3* vertices;
-  int triangle_count;
-};
-
-struct DebugData {
-  DebugTriangles mesh_around_player;
 };
 
 

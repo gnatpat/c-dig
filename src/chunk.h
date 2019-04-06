@@ -8,3 +8,7 @@ inline Block getBlockAt(Chunk* c, V3i v) {
   return c->blocks[v.x][v.y][v.z];
 }
 
+inline void putBlockAt(Chunk* c, V3i v, Block block) {
+  c->blocks[v.x][v.y][v.z] = block;
+}
+

@@ -13,6 +13,19 @@ Block getBlockAt(LoadedWorld* world, V3i pos) {
   return getBlockAt(chunk, in_chunk_pos);
 }
 
+void putBlockAt(LoadedWorld* world, V3i pos, Block block) {
+  V3i loaded_pos = pos - world->origin;
+  V3i chunk_pos = loaded_pos / CHUNK_SIZE;
+  V3i in_chunk_pos = loaded_pos % CHUNK_SIZE;
+  if(loaded_pos.x < 0 or loaded_pos.y < 0 or loaded_pos.z < 0 or
+    chunk_pos.x >= LOADED_WORLD_SIZE or chunk_pos.y >= LOADED_WORLD_SIZE or chunk_pos.z >= LOADED_WORLD_SIZE) {
+    return;
+  }
+  Chunk* chunk = getChunkRelativeToLoadedWorld(world, chunk_pos);
+  putBlockAt(chunk, in_chunk_pos, block);
+}
+
+
 bool isPointAir(LoadedWorld* world, V3 pos) {
   BlockShape shape = getBlockAt(world, toV3i(pos)).block_shape;
   return isPointAir(shape, fractional_part(pos.x), fractional_part(pos.y), fractional_part(pos.z));
@@ -47,6 +60,12 @@ void initWorld(LoadedWorld* world) {
       }
     }
   }
+  putBlockAt(world, v3i(30, 28, 33), { CUBE });
+  putBlockAt(world, v3i(30, 28, 32), { CUBE });
+  putBlockAt(world, v3i(30, 28, 31), { CUBE });
+  putBlockAt(world, v3i(30, 29, 33), { CUBE });
+  putBlockAt(world, v3i(30, 29, 32), { CUBE });
+  putBlockAt(world, v3i(30, 29, 31), { CUBE });
   signalCondition(&world->render_state.new_chunk_condition);
   unlockMutex(&world->render_state.new_chunk_lock);
 }
