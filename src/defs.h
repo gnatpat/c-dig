@@ -87,7 +87,7 @@ struct QuadraticSolutions {
   bool solution_exists;
   float min;
   float max;
-}
+};
 
 struct DebugTriangles {
   unsigned int vao;

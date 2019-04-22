@@ -292,7 +292,7 @@ inline V3 v3(float x, float y, float z) {
 }
 
 inline void printV3(V3 v) {
-  printf("[ %2.2f, %2.2f, %2.2f ]\n", v.x, v.y, v.z);
+  printf("[ %2.2f, %2.2f, %2.2f ]", v.x, v.y, v.z);
 }
 
 inline V3i toV3i(V3 v) {
@@ -504,7 +504,7 @@ inline V3i v3i(int x, int y, int z) {
 }
 
 inline void printV3i(V3i v) {
-  printf("[ %d, %d, %d ]\n", v.x, v.y, v.z);
+  printf("[ %d, %d, %d ]", v.x, v.y, v.z);
 }
 
 // TODO: I couldn't find a way to make these casts. Oh well.

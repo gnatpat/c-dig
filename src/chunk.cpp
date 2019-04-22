@@ -103,6 +103,16 @@ float AMPLITUDE = 0.2;
 float FREQUENCY = 0.02;
 
 void initChunk(Chunk* c) {
+  for(int x = 0; x < CHUNK_SIZE; x++) {
+    for(int z = 0; z < CHUNK_SIZE; z++) {
+      for(int y = 0; y < CHUNK_SIZE; y++) {
+        int height = y + c->origin.y;
+        c->blocks[x][y][z].block_shape = height < 28 ? CUBE : AIR;
+      }
+    }
+  }
+  return;
+
   int corner_heights[CHUNK_SIZE+1][CHUNK_SIZE+1];
   for(int x = 0; x < CHUNK_SIZE+1; x++) {
     for(int z = 0; z < CHUNK_SIZE+1; z++) {
