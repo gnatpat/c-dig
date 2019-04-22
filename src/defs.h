@@ -83,6 +83,12 @@ struct Triangle {
   V3 normal;
 };
 
+struct QuadraticSolutions {
+  bool solution_exists;
+  float min;
+  float max;
+}
+
 struct DebugTriangles {
   unsigned int vao;
   unsigned int vbo;

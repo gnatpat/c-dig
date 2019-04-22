@@ -18,44 +18,110 @@ bool isPointInTriangle(Triangle t, V3 pos) {
   return u >= 0 && v >= 0 && (u + v) < 1;
 }
 
+Triangle toEspaceTriangle(Triangle t, V3 espace_conversion) {
+    Triangle espace_triangle = triangles[i];
+    espace_triangle.vertices[0] /= espace_conversion;
+    espace_triangle.vertices[1] /= espace_conversion;
+    espace_triangle.vertices[2] /= espace_conversion;
+    espace_triangle.normal /= espace_conversion;
+    espace_triangle.normal = normalise(espace_triangle.normal);
 
-float signedDistance(Triangle t, V3 p) {
+    return espace_triangle;
+}
+
+float signedDistanceFromTrianglePlane(Triangle t, V3 p) {
   return dot(t.normal, p) - (t.normal.x * t.vertices[0].x +
                              t.normal.y * t.vertices[0].y +
                              t.normal.z * t.vertices[0].z);
 }
 
-bool getLowestRoot(float a, float b, float c, float maxR, float* root) {
-  // Check if a solution exists
+QuadraticSolutions solveQuadratic(float a, float b, float c) {
+  QuadraticSolutions solutions;
   float determinant = b*b - 4.0f*a*c;
-  // If determinant is negative it means no solutions.
-  if (determinant < 0.0f) return false;
-  // calculate the two roots: (if determinant == 0 then
-  // x1==x2 but let’s disregard that slight optimization)
+
+  if (determinant < 0.0f) {
+    solutions.solution_exists = false;
+    return solutions;
+  }
+
   float sqrtD = sqrt(determinant);
   float r1 = (-b - sqrtD) / (2*a);
   float r2 = (-b + sqrtD) / (2*a);
-  // Sort so x1 <= x2
+
   if (r1 > r2) {
     float temp = r2;
     r2 = r1;
     r1 = temp;
   }
-  // Get lowest root:
-  if (r1 > 0 && r1 < maxR) {
-    *root = r1;
-    return true;
-  }
-  // It is possible that we want x2 - this can happen
-  // if x1 < 0
-  if (r2 > 0 && r2 < maxR) {
-    *root = r2;
-    return true;
-  }
-  // No (valid) solutions
-  return false;
+
+  solutions.solution_exists = true;
+  solutions.min = r1;
+  solutions.max = r2;
+  return solutions;
 }
 
+struct CollisionResult {
+  bool collision;
+  float time;
+  V3 collisionPoint;
+};
+
+CollisionResult vertexCollision(V3 vertex, V3 sphere_pos, V3 velocity) {
+  CollisionResult result;
+
+  float distance = sphere_pos - vertex;
+  float a = lenSq(velocity);
+  float b = 2 * dot(distance, velocity);
+  float c = lenSq(distance) - 1;
+
+  QuadraticSolutions solutions = solveQuadratic(a, b, c);
+  if (!solutions.solution_exists || solutions.max < 0.0f || solutions.min > 1.0f) {
+    result.collision = false;
+    return result;
+  }
+
+  result.collision = true;
+  result.collisionPoint = vertex;
+
+  if (solutions.min < 0.0) {
+    result.time = solutions.max;
+    return result;
+  }
+  result.time = solutions.min;
+  return result;
+}
+
+
+CollisionResult lineCollision(V3 line_direction, V3 point_on_line, V3 shere_pos, V3 velocity) {
+  CollisionResult result;
+
+  V3 u = velocity - dot(velocity, line_direction) * line_direction;
+  V3 q = sphere_pos - dot(sphere_pos - point_on_line, line_direction) * line_direction;
+
+  float a = lenSq(u);
+  float b = 2 * dot(u, q);
+  float c = lenSq(q) - 1;
+
+  QuadraticSolutions solutions = solveQuadratic(a, b, c);
+  if (!solutions.solution_exists || solutions.max < 0.0f || solutions.min > 1.0f) {
+    result.collision = false;
+    return result;
+  }
+
+  result.collision = true;
+  float solution;
+
+  if (solutions.min < 0.0) {
+    solution = solution.max;
+  } else {
+    solution = solution.min;
+  }
+
+
+
+  result.time = solutions.min;
+  return result;
+}
 
 void initPlayer(Player* player) {
   player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
@@ -166,23 +232,18 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
                                                toV3i(current_pos)-v3i(1, 2, 1),
                                                toV3i(current_pos)+v3i(1, 2, 1));
 
-    V3 espace_movement_velocity = movement_velocity / espace_conversion;
     V3 espace_current_pos = current_pos / espace_conversion;
+    V3 espace_movement_velocity = movement_velocity / espace_conversion;
+
     bool collision = false;
-    float earliest_t0 = 1.0f;
     Triangle collision_triangle;
     int collision_count = 0;
     Triangle* collisions = player->collision_triangles.triangles;
     for (int i = 0; i < triangle_count; i++) {
-      Triangle espace_triangle = triangles[i];
-      espace_triangle.vertices[0] /= espace_conversion;
-      espace_triangle.vertices[1] /= espace_conversion;
-      espace_triangle.vertices[2] /= espace_conversion;
-      espace_triangle.normal /= espace_conversion;
-      espace_triangle.normal = normalise(espace_triangle.normal);
+      Triangle espace_triangle = toEspaceTriangle(triangles[i]);
 
       float relative_velocity = dot(espace_triangle.normal, espace_movement_velocity);
-      float signed_distance = signedDistance(espace_triangle, espace_current_pos);
+      float signed_distance = signedDistanceFromTrianglePlane(espace_triangle, espace_current_pos);
       float t0, t1;
       if (relative_velocity == 0.0) {
         if (fabsf(signed_distance) < 1.0) {
@@ -202,32 +263,21 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
         continue;
       }
 
-      if (t0 < earliest_t0) {
-        V3 plane_intersection_point = espace_current_pos - espace_triangle.normal + t0 * espace_movement_velocity;
-        if(isPointInTriangle(espace_triangle, plane_intersection_point)) {
-          collision = true;
-          earliest_t0 = t0;
-          *(collisions + collision_count) = triangles[i];
-          collision_count++;
-          collision_triangle = triangles[i];
-        }
+      V3 plane_intersection_point = espace_current_pos - espace_triangle.normal + t0 * espace_movement_velocity;
+      if(isPointInTriangle(espace_triangle, plane_intersection_point)) {
+        collision = true;
+
+        *(collisions + collision_count) = triangles[i];
+        collision_count++;
+        collision_triangle = triangles[i];
       }
+
+
     }
-    if (collision) {
-      printf("===COLLISION===\n");
-      printf("From: ");
-      printV3(current_pos);
-      current_pos += earliest_t0 * movement_velocity;
-      printf("To: ");
-      printV3(current_pos);
-      printf("At %f\n", earliest_t0);
-      printV3(collision_triangle.vertices[0]);
-      printV3(collision_triangle.vertices[1]);
-      printV3(collision_triangle.vertices[2]);
-      printV3(collision_triangle.normal);
-    }
+    /*
     player->position = current_pos;
     player->collision_triangles.triangle_count = collision_count;
+    */
     fillDebugTriangleRenderData(&player->collision_triangles);
   }
 }
