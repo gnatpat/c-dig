@@ -39,8 +39,15 @@ float signedDistanceFromTrianglePlane(Triangle t, V3 p) {
 
 QuadraticSolutions solveQuadratic(float a, float b, float c) {
   QuadraticSolutions solutions;
-  if (a == 0.0 && b == 0.0) {
-    solutions.solution_exists = false;
+  if (a == 0.0) {
+    if (b == 0.0) {
+      solutions.solution_exists = false;
+      return solutions;
+    }
+    solutions.solution_exists = true;
+    float only_solution = -c/b;
+    solutions.min = only_solution;
+    solutions.max = only_solution;
     return solutions;
   }
 
@@ -104,7 +111,7 @@ MaybeCollision lineCollision(V3 line_start, V3 line_end, V3 sphere_pos, V3 veloc
 
   V3 line_direction = normalise(line_end - line_start);
   V3 u = velocity - dot(velocity, line_direction) * line_direction;
-  V3 q = sphere_pos - dot(sphere_pos - line_start, line_direction) * line_direction;
+  V3 q = (sphere_pos - line_start) - dot(sphere_pos - line_start, line_direction) * line_direction;
 
   float a = lenSq(u);
   float b = 2 * dot(u, q);
@@ -156,7 +163,11 @@ MaybeCollision earliestCollision(MaybeCollision r1, MaybeCollision r2) {
 }
 
 float VELOCITY_EPSILON = 0.000001;
-V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count) {
+V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int depth) {
+  if(depth == 5) {
+    return position;
+  }
+
   printf("Moving from ");
   printV3(position);
   printf(" with velocity ");
@@ -224,15 +235,22 @@ V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count) {
   V3 remaining_velocity = (1-first_collision.time) * velocity;
   printV3(remaining_velocity);
   printf(" remaining before slide.\n");
-  remaining_velocity += dot(remaining_velocity, sliding_plane_normal) * sliding_plane_normal;
+  remaining_velocity -= dot(remaining_velocity, sliding_plane_normal) * sliding_plane_normal;
   printV3(remaining_velocity);
   printf(" remaining after slide.\n");
 
+  V3 new_position = sphere_position_at_collision - normalise(velocity) * VELOCITY_EPSILON;
+
   if(len(remaining_velocity) < VELOCITY_EPSILON) {
-    return sphere_position_at_collision;
+    return new_position;
   }
 
-  return move(sphere_position_at_collision, remaining_velocity, triangles, triangle_count);
+  return move(new_position, remaining_velocity, triangles, triangle_count, depth+1);
+}
+
+
+V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count) {
+  return move(position, velocity, triangles, triangle_count, 0);
 }
 
 
