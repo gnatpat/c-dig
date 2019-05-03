@@ -938,3 +938,83 @@ inline int lenSq(V2i v) {
 inline float len(V2i v) {
   return sqrt(lenSq(v));
 }
+
+// MISC
+
+QuadraticSolutions solveQuadratic(float a, float b, float c) {
+  QuadraticSolutions solutions;
+  if (a == 0.0) {
+    if (b == 0.0) {
+      solutions.solution_exists = false;
+      return solutions;
+    }
+    solutions.solution_exists = true;
+    float only_solution = -c/b;
+    solutions.min = only_solution;
+    solutions.max = only_solution;
+    return solutions;
+  }
+
+  float determinant = b*b - 4.0f*a*c;
+
+  if (determinant < 0.0f) {
+    solutions.solution_exists = false;
+    return solutions;
+  }
+
+  float sqrtD = sqrt(determinant);
+  float r1 = (-b - sqrtD) / (2*a);
+  float r2 = (-b + sqrtD) / (2*a);
+
+  if (r1 > r2) {
+    float temp = r2;
+    r2 = r1;
+    r1 = temp;
+  }
+
+  solutions.solution_exists = true;
+  solutions.min = r1;
+  solutions.max = r2;
+  return solutions;
+}
+
+
+Triangle toEspaceTriangle(Triangle t, V3 espace_conversion) {
+    Triangle espace_triangle = t;
+    espace_triangle.vertices[0] /= espace_conversion;
+    espace_triangle.vertices[1] /= espace_conversion;
+    espace_triangle.vertices[2] /= espace_conversion;
+    espace_triangle.normal /= espace_conversion;
+    espace_triangle.normal = normalise(espace_triangle.normal);
+
+    return espace_triangle;
+}
+
+float signedDistanceFromPlane(V3 normal, V3 point_on_plane, V3 p) {
+  return dot(p - point_on_plane, normal);
+}
+
+float signedDistanceFromTrianglePlane(Triangle t, V3 p) {
+  return signedDistanceFromPlane(t.normal, t.vertices[0], p);
+}
+
+bool isPointInTriangle(Triangle t, V3 pos) {
+  V3 axis0 = t.vertices[1] - t.vertices[0];
+  V3 axis1 = t.vertices[2] - t.vertices[0];
+  V3 relative_pos = pos - t.vertices[0];
+
+  float axis0_dist_sq = dot(axis0, axis0);
+  float axis1_dist_sq = dot(axis1, axis1);
+
+  float axis_0_of_pos = dot(axis0, relative_pos);
+  float axis_1_of_pos = dot(axis1, relative_pos);
+
+  float crossover = dot(axis0, axis1);
+
+  float inv_denom = 1 / (axis0_dist_sq * axis1_dist_sq - crossover * crossover);
+  float u = (axis1_dist_sq * axis_0_of_pos - crossover * axis_1_of_pos) * inv_denom;
+  float v = (axis0_dist_sq * axis_1_of_pos - crossover * axis_0_of_pos) * inv_denom;
+
+  return u >= 0 && v >= 0 && (u + v) < 1;
+}
+

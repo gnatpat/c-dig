@@ -5,10 +5,12 @@
 
 #include "block.cpp"
 #include "block_viewer.cpp"
+#include "collision.cpp"
 #include "chunk.cpp"
 #include "debug.cpp"
 #include "input.cpp"
 #include "models.cpp"
+#include "move.cpp"
 #include "noise.cpp"
 #include "opengl.cpp"
 #include "player.cpp"
