@@ -1,9 +1,5 @@
 float VELOCITY_EPSILON = 0.000001;
 V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int depth) {
-  if(depth == 5) {
-    return position;
-  }
-
   printf("Moving from ");
   printV3(position);
   printf(" with velocity ");

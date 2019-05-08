@@ -52,9 +52,9 @@ MaybeCollision lineCollision(V3 line_start, V3 line_end, V3 sphere_pos, V3 veloc
     printf("quadratic solver returned nan in linecollision.\n");
   }
 
-  float line_length = len(line_end - line_start);
+  //float line_length = len(line_end - line_start);
   float proportion_through_line = 
-    (dot(velocity, line_direction) * solution + dot(sphere_pos - line_start, line_direction)) / line_length;
+    (dot(velocity, line_direction) * solution + dot(sphere_pos - line_start, line_direction));// / line_length;
 
   if(proportion_through_line < 0.0 || proportion_through_line > 1.0) {
     collision.collided = false;
