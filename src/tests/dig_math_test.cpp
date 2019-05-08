@@ -7,10 +7,10 @@ TestResult testSignedDistanceFromXyPlane(void) {
   t.normal = v3(0, 0, 1);
 
   V3 pos = v3(0, 0, 15);
-  CHECK(signedDistance(t, pos) == 15.0);
+  CHECK(signedDistanceFromTrianglePlane(t, pos) == 15.0);
 
   pos = v3(0, 0, -15);
-  CHECK(signedDistance(t, pos) == -15.0);
+  CHECK(signedDistanceFromTrianglePlane(t, pos) == -15.0);
 
   t.vertices[0] = v3(0, 0, 42);
   t.vertices[1] = v3(4, 0, 0);
@@ -18,10 +18,10 @@ TestResult testSignedDistanceFromXyPlane(void) {
   t.normal = v3(0, 0, 1);
 
   pos = v3(0, 0, 43);
-  CHECK(signedDistance(t, pos) == 1.0);
+  CHECK(signedDistanceFromTrianglePlane(t, pos) == 1.0);
 
   pos = v3(0, 0, 22);
-  CHECK(signedDistance(t, pos) == -20.0);
+  CHECK(signedDistanceFromTrianglePlane(t, pos) == -20.0);
   SUCCESS
 }
 

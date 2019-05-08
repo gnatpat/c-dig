@@ -440,6 +440,10 @@ inline V3 & operator/=(V3 &v, float a) {
   return v;
 }
 
+inline bool operator==(V3 v, V3 u) {
+  return v.x == u.x && v.y == u.y && v.z == u.z;
+}
+
 // scalar
 
 inline float inner(V3 v, V3 u) {
