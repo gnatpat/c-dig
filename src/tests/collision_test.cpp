@@ -35,6 +35,7 @@ TestResult testLineCollision(void) {
   CHECK(collision.time == 0.25);
   printV3(collision.collision_point);
   CHECK(collision.collision_point == v3(0, 1, 0));
+  SUCCESS;
 }
 
 TestResult testLineCollisionWithLineTheOtherWay(void) {
@@ -49,6 +50,7 @@ TestResult testLineCollisionWithLineTheOtherWay(void) {
   CHECK(collision.time == 0.25);
   printV3(collision.collision_point);
   CHECK(collision.collision_point == v3(0, 1, 0));
+  SUCCESS;
 }
 
 TestResult testLineCollisionWithLongerLine(void) {
@@ -63,5 +65,20 @@ TestResult testLineCollisionWithLongerLine(void) {
   printV3(collision.collision_point);
   CHECK(collision.collision_point == v3(0, 1, 0));
   CHECK(collision.time == 0.125);
+
+  SUCCESS;
+}
+
+TestResult testLineCollisionNotInLineSegment(void) {
+  V3 line_start = v3(0, 10, 0);
+  V3 line_end = v3(0, 4, 0);
+  V3 sphere_pos = v3(-2, 1, 0);
+  V3 velocity = v3(8, 0, 0);
+
+  MaybeCollision collision = lineCollision(line_start, line_end, sphere_pos, velocity);
+
+  CHECK(collision.collided == false);
+
+  SUCCESS;
 }
 
