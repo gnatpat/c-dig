@@ -60,12 +60,6 @@ void initWorld(LoadedWorld* world) {
       }
     }
   }
-  putBlockAt(world, v3i(30, 28, 33), { CUBE });
-  putBlockAt(world, v3i(30, 28, 32), { CUBE });
-  putBlockAt(world, v3i(30, 28, 31), { CUBE });
-  putBlockAt(world, v3i(30, 29, 33), { CUBE });
-  putBlockAt(world, v3i(30, 29, 32), { CUBE });
-  putBlockAt(world, v3i(30, 29, 31), { CUBE });
   signalCondition(&world->render_state.new_chunk_condition);
   unlockMutex(&world->render_state.new_chunk_lock);
 }

@@ -98,8 +98,7 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
 
     V3 position = player->position;
 
-    // The code below was taken from the algorithm from http://www.peroxide.dk/papers/collision/collision.pdf.
-
+    // The general movement code was taken from the algorithm from http://www.peroxide.dk/papers/collision/collision.pdf
     V3 espace_conversion = v3(0.5, PLAYER_HEIGHT/2, 0.5);
     Triangle triangles[500];
     int triangle_count = getMeshAroundPosition(&triangles[0],
@@ -108,7 +107,6 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
                                                toV3i(position)+v3i(1, 2, 1));
 
     Triangle espace_triangles[500];
-    printf("Checking %d triangles.\n", triangle_count);
     for (int i = 0; i < triangle_count; i++) {
       espace_triangles[i] = toEspaceTriangle(triangles[i], espace_conversion);
     }
@@ -119,6 +117,19 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     V3 espace_new_pos = move(espace_position, espace_velocity, &espace_triangles[0], triangle_count);
 
     V3 new_pos = espace_new_pos * espace_conversion;
+
+#ifdef MOVEMENT_DEBUG
+    printf("===================\nAttempting to move from ");
+    printV3(player->position);
+    printf(" to ");
+    printV3(player->position + velocity);
+    printf(".\n");
+    printf("Checking %d triangles.\n", triangle_count);
+    printf("Ended up at ");
+    printV3(new_pos);
+    printf(".\n");
+#endif
+
     player->position = new_pos;
   }
 }

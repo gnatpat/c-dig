@@ -1,3 +1,5 @@
+//#define MOVEMENT_DEBUG
+
 void initDebugData(DebugData* debug_data);
 void initDebugTriangles(DebugTriangles* debug_triangles, int size);
 void debugMeshAroundPlayer(DebugTriangles* debug_triangles, GameData* game_data);

@@ -1,10 +1,5 @@
-float VELOCITY_EPSILON = 0.000001;
+float VELOCITY_EPSILON = 0.0001;
 V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int depth) {
-  printf("Moving from ");
-  printV3(position);
-  printf(" with velocity ");
-  printV3(velocity);
-  printf(".\n");
   MaybeCollision first_collision;
   first_collision.collided = false;
   first_collision.time = 2.0;
@@ -56,20 +51,14 @@ V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int d
 
   if (!first_collision.collided) {
     V3 new_position = position + velocity;
-    printf("No collision.\n");
     return new_position;
   }
-  printf("Collision at %f!\n", first_collision.time);
 
   V3 sphere_position_at_collision = position + first_collision.time * velocity;
 
   V3 sliding_plane_normal = normalise(sphere_position_at_collision - first_collision.collision_point);
   V3 remaining_velocity = (1-first_collision.time) * velocity;
-  printV3(remaining_velocity);
-  printf(" remaining before slide.\n");
   remaining_velocity -= dot(remaining_velocity, sliding_plane_normal) * sliding_plane_normal;
-  printV3(remaining_velocity);
-  printf(" remaining after slide.\n");
 
   V3 new_position = sphere_position_at_collision - normalise(velocity) * VELOCITY_EPSILON;
 
