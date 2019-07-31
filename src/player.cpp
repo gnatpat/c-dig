@@ -70,10 +70,9 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     player->speed.x *= pow(PLAYER_FRICTION, dt * 400);
     player->speed.z *= pow(PLAYER_FRICTION, dt * 400);
 
-    V3 slightly_below_player = player->position - v3(0, PLAYER_HEIGHT/2 + 0.05f, 0);
-    if (isPointAir(world, slightly_below_player)) {
-      player->speed.y -= GRAVITY * dt;
-      player->speed.y = fmaxf(-MAX_Y_SPEED, player->speed.y);
+    player->speed.y -= GRAVITY * dt;
+    player->speed.y = fmaxf(-MAX_Y_SPEED, player->speed.y);
+    if (!player->on_ground) {
       if (isKeyDown(PLAYER_JUMP_KEY)) {
         if (player->jump_timer > 0.0f) {
           player->jump_timer -= dt;
@@ -114,7 +113,12 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     V3 espace_position = position / espace_conversion;
     V3 espace_velocity = velocity / espace_conversion;
 
-    V3 espace_new_pos = move(espace_position, espace_velocity, &espace_triangles[0], triangle_count);
+    V3 y_espace_velocity = v3(0, 1, 0) * espace_velocity.y;
+    V3 xz_espace_velocity = espace_velocity - y_espace_velocity;
+    MoveResult result = move(espace_position, xz_espace_velocity, &espace_triangles[0], triangle_count, true);
+    espace_position = result.end_pos;
+    result = move(espace_position, y_espace_velocity, &espace_triangles[0], triangle_count, false);
+    V3 espace_new_pos = result.end_pos;
 
     V3 new_pos = espace_new_pos * espace_conversion;
 
@@ -131,5 +135,6 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
 #endif
 
     player->position = new_pos;
+    player->on_ground = result.on_ground;
   }
 }

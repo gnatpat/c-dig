@@ -284,6 +284,7 @@ struct Player {
   bool flying;
   V3 speed;
   float jump_timer;
+  bool on_ground;
   DebugTriangles collision_triangles;
 };
 

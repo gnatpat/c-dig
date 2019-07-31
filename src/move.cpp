@@ -1,5 +1,5 @@
 float VELOCITY_EPSILON = 0.0001;
-V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int depth) {
+MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int depth, bool moving_xz) {
   MaybeCollision first_collision;
   first_collision.collided = false;
   first_collision.time = 2.0;
@@ -51,25 +51,37 @@ V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int d
 
   if (!first_collision.collided) {
     V3 new_position = position + velocity;
-    return new_position;
+    return { new_position, false };
   }
 
   V3 sphere_position_at_collision = position + first_collision.time * velocity;
-
-  V3 sliding_plane_normal = normalise(sphere_position_at_collision - first_collision.collision_point);
-  V3 remaining_velocity = (1-first_collision.time) * velocity;
-  remaining_velocity -= dot(remaining_velocity, sliding_plane_normal) * sliding_plane_normal;
-
   V3 new_position = sphere_position_at_collision - normalise(velocity) * VELOCITY_EPSILON;
+  V3 remaining_velocity = (1-first_collision.time) * velocity;
+  V3 sliding_plane_normal = normalise(sphere_position_at_collision - first_collision.collision_point);
 
-  if(len(remaining_velocity) < VELOCITY_EPSILON) {
-    return new_position;
+  bool on_ground;
+  if(moving_xz) {
+    on_ground = false;
+    if(fabsf(sliding_plane_normal.y) < 0.2) {
+      remaining_velocity -= dot(remaining_velocity, sliding_plane_normal) * sliding_plane_normal;
+    } else {
+      float y_distance = copysign(len(sliding_plane_normal - v3(0, 1, 0) * sliding_plane_normal),
+                                  sliding_plane_normal.y);
+      new_position += y_distance * len(velocity);
+    }
+  } else {
+    on_ground = (sliding_plane_normal.y > 0.2);
+    remaining_velocity = v3(0, 0, 0);
   }
 
-  return move(new_position, remaining_velocity, triangles, triangle_count, depth+1);
+  if(len(remaining_velocity) < VELOCITY_EPSILON) {
+    return { new_position, on_ground };
+  }
+
+  return move(new_position, remaining_velocity, triangles, triangle_count, depth+1, moving_xz);
 }
 
 
-V3 move(V3 position, V3 velocity, Triangle* triangles, int triangle_count) {
-  return move(position, velocity, triangles, triangle_count, 0);
+MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, bool moving_xz) {
+  return move(position, velocity, triangles, triangle_count, 0, moving_xz);
 }
