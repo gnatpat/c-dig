@@ -1,4 +1,4 @@
-float VELOCITY_EPSILON = 0.0001;
+float VELOCITY_EPSILON = 0.001;
 MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int depth, bool moving_xz) {
   MaybeCollision first_collision;
   first_collision.collided = false;
@@ -34,7 +34,8 @@ MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_coun
       collision.collided = true;
       collision.time = t0;
       collision.collision_point = plane_intersection_point;
-
+      collision.collision_type = FACE_COLLISION;
+      collision.triangle_info = triangle;
       first_collision = earliestCollision(first_collision, collision);
       continue;
     }
@@ -51,7 +52,7 @@ MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_coun
 
   if (!first_collision.collided) {
     V3 new_position = position + velocity;
-    return { new_position, false };
+    return { new_position, false , first_collision };
   }
 
   V3 sphere_position_at_collision = position + first_collision.time * velocity;
@@ -62,20 +63,14 @@ MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_coun
   bool on_ground;
   if(moving_xz) {
     on_ground = false;
-    if(fabsf(sliding_plane_normal.y) < 0.2) {
-      remaining_velocity -= dot(remaining_velocity, sliding_plane_normal) * sliding_plane_normal;
-    } else {
-      float y_distance = copysign(len(sliding_plane_normal - v3(0, 1, 0) * sliding_plane_normal),
-                                  sliding_plane_normal.y);
-      new_position += y_distance * len(velocity);
-    }
+    remaining_velocity -= dot(remaining_velocity, sliding_plane_normal) * sliding_plane_normal;
   } else {
     on_ground = (sliding_plane_normal.y > 0.2);
     remaining_velocity = v3(0, 0, 0);
   }
 
   if(len(remaining_velocity) < VELOCITY_EPSILON) {
-    return { new_position, on_ground };
+    return { new_position, on_ground, first_collision };
   }
 
   return move(new_position, remaining_velocity, triangles, triangle_count, depth+1, moving_xz);

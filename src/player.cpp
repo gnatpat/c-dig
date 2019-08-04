@@ -3,7 +3,6 @@ void initPlayer(Player* player) {
   player->pitch = 0.0f;
   player->yaw = 0.0f;
   player->speed = v3(0, 0, 0);
-  initDebugTriangles(&player->collision_triangles, 100);
 }
 
 
@@ -70,8 +69,6 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     player->speed.x *= pow(PLAYER_FRICTION, dt * 400);
     player->speed.z *= pow(PLAYER_FRICTION, dt * 400);
 
-    player->speed.y -= GRAVITY * dt;
-    player->speed.y = fmaxf(-MAX_Y_SPEED, player->speed.y);
     if (!player->on_ground) {
       if (isKeyDown(PLAYER_JUMP_KEY)) {
         if (player->jump_timer > 0.0f) {
@@ -89,11 +86,18 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
         player->speed.y = 0.0f;
       }
     }
+    player->speed.y -= GRAVITY * dt;
+    player->speed.y = fmaxf(-MAX_Y_SPEED, player->speed.y);
 
     V3 velocity = player->speed * dt;
     if(lenSq(velocity) == 0.0) {
       return;
     }
+    V3 y_velocity = v3(0, velocity.y, 0);
+    V3 xz_velocity = v3(velocity.x, 0, velocity.z);
+    float xz_distance = len(xz_velocity);
+    xz_velocity.y = xz_distance * sqrt(2);
+    y_velocity.y -= xz_distance * sqrt(2);
 
     V3 position = player->position;
 
@@ -111,13 +115,13 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     }
 
     V3 espace_position = position / espace_conversion;
-    V3 espace_velocity = velocity / espace_conversion;
+    V3 y_espace_velocity = y_velocity / espace_conversion;
+    V3 xz_espace_velocity = xz_velocity / espace_conversion;
 
-    V3 y_espace_velocity = v3(0, 1, 0) * espace_velocity.y;
-    V3 xz_espace_velocity = espace_velocity - y_espace_velocity;
     MoveResult result = move(espace_position, xz_espace_velocity, &espace_triangles[0], triangle_count, true);
-    espace_position = result.end_pos;
-    result = move(espace_position, y_espace_velocity, &espace_triangles[0], triangle_count, false);
+    player->latest_collision = fromEspaceCollision(result.collision, espace_conversion);
+
+    result = move(result.end_pos, y_espace_velocity, &espace_triangles[0], triangle_count, false);
     V3 espace_new_pos = result.end_pos;
 
     V3 new_pos = espace_new_pos * espace_conversion;

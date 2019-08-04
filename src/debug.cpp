@@ -8,6 +8,7 @@ void initDebugTriangles(DebugTriangles* debug_triangles, int size) {
 
 void initDebugData(DebugData* debug_data) {
   initDebugTriangles(&debug_data->mesh_around_player, 1000);
+  initDebugTriangles(&debug_data->collision_triangles, 60);
 }
 
 void debugMeshAroundPlayer(DebugTriangles* debug_triangles, GameData* game_data) {
@@ -17,6 +18,21 @@ void debugMeshAroundPlayer(DebugTriangles* debug_triangles, GameData* game_data)
                                                           toV3i(game_data->player.position)+v3i(1, 2, 1));
   fillDebugTriangleRenderData(debug_triangles);
 }
+
+void debugCollision(DebugTriangles* debug_triangles, GameData* game_data) {
+  Player* player = &game_data->player;
+  MaybeCollision* collision = &player->latest_collision;
+  if(!collision->collided) {
+    debug_triangles->triangle_count = 0;
+    return;
+  }
+  if (collision->collision_type == FACE_COLLISION) {
+    debug_triangles->triangle_count = 1;
+    debug_triangles->triangles[0] = collision->triangle_info;
+  }
+  fillDebugTriangleRenderData(debug_triangles);
+}
+
 
 void fillDebugTriangleRenderData(DebugTriangles* debug_triangles) {
   V3* cursor = debug_triangles->vertices;
@@ -37,7 +53,8 @@ void fillDebugTriangleRenderData(DebugTriangles* debug_triangles) {
 }
 
 void renderDebug(DebugData* debug_data, GLuint shader, Matrix4x4 view, Matrix4x4 projection) {
-  renderDebugTriangles(&debug_data->mesh_around_player, shader, view, projection, WHITE);
+  //renderDebugTriangles(&debug_data->mesh_around_player, shader, view, projection, WHITE);
+  renderDebugTriangles(&debug_data->collision_triangles, shader, view, projection, RED);
 }
 
 void renderDebugTriangles(DebugTriangles* debug_triangles, GLuint shader, Matrix4x4 view, Matrix4x4 projection, V3 col) {

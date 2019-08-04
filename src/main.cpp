@@ -95,6 +95,7 @@ int main(void) {
 
       if (debug_mode) {
         debugMeshAroundPlayer(&debug_data->mesh_around_player, game_data);
+        debugCollision(&debug_data->collision_triangles, game_data);
       }
     }
 
@@ -122,11 +123,6 @@ int main(void) {
       if(debug_mode) {
         renderDebug(debug_data, debug_triangle_shader, view, projection);
       }
-      renderDebugTriangles(&game_data->player.collision_triangles,
-                           debug_triangle_shader,
-                           view,
-                           projection,
-                           RED);
     }
 
     glfwSwapBuffers(window);

@@ -83,6 +83,11 @@ struct Triangle {
   V3 normal;
 };
 
+struct Line {
+  V3 start;
+  V3 end;
+};
+
 struct QuadraticSolutions {
   bool solution_exists;
   float min;
@@ -99,6 +104,7 @@ struct DebugTriangles {
 
 struct DebugData {
   DebugTriangles mesh_around_player;
+  DebugTriangles collision_triangles;
 };
 
 struct LinkedList {
@@ -111,6 +117,25 @@ struct LockedLinkedList {
   LinkedList* list;
   Mutex lock = PTHREAD_MUTEX_INITIALIZER;
   MutexCondition new_element_condition = PTHREAD_COND_INITIALIZER;
+};
+
+enum CollisionType {
+  POINT_COLLISION,
+  LINE_COLLISION,
+  FACE_COLLISION,
+
+  COLLISION_TYPE_COUNT
+};
+
+struct MaybeCollision {
+  bool collided;
+  float time;
+  V3 collision_point;
+  CollisionType collision_type;
+  union {
+    Line line_info;
+    Triangle triangle_info;
+  };
 };
 
 
@@ -285,7 +310,7 @@ struct Player {
   V3 speed;
   float jump_timer;
   bool on_ground;
-  DebugTriangles collision_triangles;
+  MaybeCollision latest_collision;
 };
 
 struct GameData {

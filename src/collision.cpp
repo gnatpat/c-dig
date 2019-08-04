@@ -14,6 +14,7 @@ MaybeCollision vertexCollision(V3 vertex, V3 sphere_pos, V3 velocity) {
 
   collision.collided = true;
   collision.collision_point = vertex;
+  collision.collision_type = POINT_COLLISION;
 
   if (solutions.min < 0.0) {
     collision.time = solutions.max;
@@ -64,6 +65,8 @@ MaybeCollision lineCollision(V3 line_start, V3 line_end, V3 sphere_pos, V3 veloc
   collision.collided = true;
   collision.time = solution;
   collision.collision_point = line_start + proportion_through_line * line_direction * line_length;
+  collision.collision_type = LINE_COLLISION;
+  collision.line_info = { line_start, line_end };
   return collision;
 }
 
