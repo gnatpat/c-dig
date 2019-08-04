@@ -1,28 +1,49 @@
 Block OOB_BLOCK = { CUBE };
 
+struct ChunkAndPosition {
+  bool loaded;
+  Chunk* chunk;
+  V3i in_chunk_pos;
+};
 
-Block getBlockAt(LoadedWorld* world, V3i pos) {
+ChunkAndPosition absoluteValueToChunkAndPosition(LoadedWorld* world, V3i pos){
   V3i loaded_pos = pos - world->origin;
   V3i chunk_pos = loaded_pos / CHUNK_SIZE;
   V3i in_chunk_pos = loaded_pos % CHUNK_SIZE;
   if(loaded_pos.x < 0 or loaded_pos.y < 0 or loaded_pos.z < 0 or
     chunk_pos.x >= LOADED_WORLD_SIZE or chunk_pos.y >= LOADED_WORLD_SIZE or chunk_pos.z >= LOADED_WORLD_SIZE) {
-    return OOB_BLOCK;
+    return { false, NULL, 0 };
   }
   Chunk* chunk = getChunkRelativeToLoadedWorld(world, chunk_pos);
-  return getBlockAt(chunk, in_chunk_pos);
+  return { true, chunk, in_chunk_pos };
+}
+
+
+Block getBlockAt(LoadedWorld* world, V3i pos) {
+  ChunkAndPosition chunk_and_position = absoluteValueToChunkAndPosition(world, pos);
+  if (!chunk_and_position.loaded) {
+    return OOB_BLOCK;
+  }
+  return getBlockAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos);
 }
 
 void putBlockAt(LoadedWorld* world, V3i pos, Block block) {
-  V3i loaded_pos = pos - world->origin;
-  V3i chunk_pos = loaded_pos / CHUNK_SIZE;
-  V3i in_chunk_pos = loaded_pos % CHUNK_SIZE;
-  if(loaded_pos.x < 0 or loaded_pos.y < 0 or loaded_pos.z < 0 or
-    chunk_pos.x >= LOADED_WORLD_SIZE or chunk_pos.y >= LOADED_WORLD_SIZE or chunk_pos.z >= LOADED_WORLD_SIZE) {
+  ChunkAndPosition chunk_and_position = absoluteValueToChunkAndPosition(world, pos);
+  if (!chunk_and_position.loaded) {
     return;
   }
-  Chunk* chunk = getChunkRelativeToLoadedWorld(world, chunk_pos);
-  putBlockAt(chunk, in_chunk_pos, block);
+  putBlockAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos, block);
+  for (int x = -1; x <= 1; x++) {
+    for (int y = -1; y <= 1; y++) {
+      for (int z = -1; z <= 1; z++) {
+        chunk_and_position = absoluteValueToChunkAndPosition(world, pos + v3i(x, y, z));
+        if (!chunk_and_position.loaded) {
+          return;
+        }
+        markChunkAsDirty(world, chunk_and_position.chunk);
+      }
+    }
+  }
 }
 
 
@@ -43,9 +64,9 @@ MaybeV3i getFirstNonAirBlockPosition(LoadedWorld* world, V3 from, V3 direction, 
     distance_left -= step_distance;
   }
   if (distance_left < 0) {
-    return { false, 0 };
+    return { true, 0 };
   }
-  return { true, toV3i(cursor) };
+  return { false, toV3i(cursor) };
 }
 
 
@@ -61,6 +82,16 @@ void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
   addToLinkedList(&world->render_state.new_chunks, c);
 }
 
+void markChunkAsDirty(LoadedWorld* world, Chunk* c) {
+  if (c->render_data.state == NO_RENDER_DATA) {
+    return;
+  }
+  c->render_data.state = NO_RENDER_DATA;
+  if (c->render_data.vertices != NULL) {
+    free(c->render_data.vertices);
+  }
+  addToLinkedList(&world->render_state.dirty_chunks, c);
+}
 
 void initWorld(LoadedWorld* world) {
   world->origin = v3i(0, 0, 0);
@@ -84,6 +115,11 @@ void initWorld(LoadedWorld* world) {
 
 
 void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4 view, Matrix4x4 projection) {
+  Chunk* chunk = (Chunk*) removefromLinkedList(&loaded_world->render_state.dirty_chunks);
+  while (chunk != NULL) {
+    fillChunkRenderData(chunk, loaded_world);
+    chunk = (Chunk*) removefromLinkedList(&loaded_world->render_state.dirty_chunks);
+  }
   glUseProgram(terrain_shader);
   GLuint transformLocation = glGetUniformLocation(terrain_shader, "view");
   glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);

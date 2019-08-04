@@ -21,6 +21,7 @@
 #include "debug.h"
 #include "dig_math.h"
 #include "input.h"
+#include "interface.h"
 #include "models.h"
 #include "move.h"
 #include "noise.h"

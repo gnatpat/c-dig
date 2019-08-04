@@ -8,8 +8,8 @@ typedef pthread_cond_t MutexCondition;
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
-const int CHUNK_SIZE = 8;
-const int LOADED_WORLD_SIZE = 8;
+const int CHUNK_SIZE = 16;
+const int LOADED_WORLD_SIZE = 4;
 
 const float SQRT2 = 1.4142136;
 const float ONE_OVER_SQRT2 = 1.0 / SQRT2;
@@ -141,7 +141,7 @@ struct MaybeCollision {
 
 // TODO: I wonder if there's a way to generalize the `Maybe` - typesafe monads in C through macro craziness?
 struct MaybeV3i {
-  bool contains;
+  bool nothing;
   V3i value;
 };
 
@@ -317,6 +317,7 @@ struct Player {
   float jump_timer;
   bool on_ground;
   MaybeCollision latest_collision;
+  MaybeV3i focus;
 };
 
 struct Interface {

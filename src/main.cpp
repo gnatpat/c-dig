@@ -38,6 +38,7 @@ int main(void) {
 
   GameData* game_data = (GameData*) malloc(sizeof(GameData));
   initWorld(&game_data->loaded_world);
+  initInterface(&game_data->interface);
 
   pthread_t chunk_render_thread;
   pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
@@ -92,6 +93,7 @@ int main(void) {
       }
 
       updatePlayer(&game_data->player, delta, &game_data->loaded_world);
+      updateInterface(game_data);
 
       if (debug_mode) {
         debugMeshAroundPlayer(&debug_data->mesh_around_player, game_data);
@@ -119,6 +121,7 @@ int main(void) {
       Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
 
       renderWorld(&game_data->loaded_world, terrain_shader, view, projection);
+      renderInterface(&game_data->interface, debug_triangle_shader, view, projection);
 
       if(debug_mode) {
         renderDebug(debug_data, debug_triangle_shader, view, projection);

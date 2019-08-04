@@ -9,6 +9,7 @@
 #include "chunk.cpp"
 #include "debug.cpp"
 #include "input.cpp"
+#include "interface.cpp"
 #include "models.cpp"
 #include "move.cpp"
 #include "noise.cpp"

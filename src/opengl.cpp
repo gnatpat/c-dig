@@ -31,6 +31,7 @@ bool initOpenGLAndCreateWindow(GLFWwindow** window) {
   glfwSetFramebufferSizeCallback(*window, framebufferSizeCallback);
   glfwSetKeyCallback(*window, keyCallback);
   glfwSetCursorPosCallback(*window, cursorPositionCallback);
+  glfwSetMouseButtonCallback(*window, mouseButtonCallback);
   glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   //glfwSwapInterval(0);
   

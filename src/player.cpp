@@ -141,5 +141,10 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
 
     player->position = new_pos;
     player->on_ground = result.on_ground;
+
+    player->focus = getFirstNonAirBlockPosition(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
+    if(!player->focus.nothing && leftMouseClicked()) {
+      putBlockAt(world, player->focus.value, { AIR });
+    }
   }
 }
