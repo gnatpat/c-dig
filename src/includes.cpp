@@ -14,6 +14,7 @@
 #include "noise.cpp"
 #include "opengl.cpp"
 #include "player.cpp"
+#include "render_utils.cpp"
 #include "shaders.cpp"
 #include "textures.cpp"
 #include "utils.cpp"

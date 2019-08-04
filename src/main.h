@@ -26,6 +26,7 @@
 #include "noise.h"
 #include "opengl.h"
 #include "player.h"
+#include "render_utils.h"
 #include "shaders.h"
 #include "pthread_aliases.h"
 #include "textures.h"

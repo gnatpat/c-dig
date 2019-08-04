@@ -15,6 +15,7 @@ float PLAYER_FLYING_SPEED = 70.0f;
 // TODO - at some point, these need to be user defined settings
 float PLAYER_YAW_LOOK_SENSITIVITY = 0.01;
 float PLAYER_PITCH_LOOK_SENSITIVITY = 0.01;
+
 void updatePlayer(Player* player, float dt, LoadedWorld* world) {
   if(isKeyPressed(SWITCH_TO_FLYING_MODE_KEY)) {
     player->flying = !player->flying;

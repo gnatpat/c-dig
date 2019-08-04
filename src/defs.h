@@ -94,17 +94,18 @@ struct QuadraticSolutions {
   float max;
 };
 
-struct DebugTriangles {
+struct BasicRenderObject {
   unsigned int vao;
   unsigned int vbo;
   V3* vertices;
   Triangle* triangles;
   int triangle_count;
+  bool dirty;
 };
 
 struct DebugData {
-  DebugTriangles mesh_around_player;
-  DebugTriangles collision_triangles;
+  BasicRenderObject mesh_around_player;
+  BasicRenderObject collision_triangles;
 };
 
 struct LinkedList {
@@ -138,6 +139,11 @@ struct MaybeCollision {
   };
 };
 
+// TODO: I wonder if there's a way to generalize the `Maybe` - typesafe monads in C through macro craziness?
+struct MaybeV3i {
+  bool contains;
+  V3i value;
+};
 
 enum InputKey {
   PLAYER_MOVE_FORWARD_KEY,
@@ -313,9 +319,14 @@ struct Player {
   MaybeCollision latest_collision;
 };
 
+struct Interface {
+  BasicRenderObject block_focus;
+};
+
 struct GameData {
   Player player;
   LoadedWorld loaded_world;
+  Interface interface;
 };
 
 struct BlockViewerData {

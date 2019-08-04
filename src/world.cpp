@@ -31,6 +31,24 @@ bool isPointAir(LoadedWorld* world, V3 pos) {
   return isPointAir(shape, fractional_part(pos.x), fractional_part(pos.y), fractional_part(pos.z));
 }
 
+
+MaybeV3i getFirstNonAirBlockPosition(LoadedWorld* world, V3 from, V3 direction, float max_distance) {
+  //TODO: need to do some better raytracing, but this will do for now
+  float step_distance = 0.01;
+  V3 cursor = from;
+  V3 step = normalise(direction) * step_distance;
+  float distance_left = max_distance;
+  while(getBlockAt(world, toV3i(cursor)).block_shape == AIR && distance_left > 0) {
+    cursor += step;
+    distance_left -= step_distance;
+  }
+  if (distance_left < 0) {
+    return { false, 0 };
+  }
+  return { true, toV3i(cursor) };
+}
+
+
 void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
   // We should assert we have the lock here.
   Chunk* c = &world->chunks[in_memory_pos.x][in_memory_pos.y][in_memory_pos.z];

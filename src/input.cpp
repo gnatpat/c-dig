@@ -9,6 +9,10 @@ static int key_mappings[INPUT_KEY_COUNT];
 
 static V2 mouse_d;
 static V2 mouse_pos;
+static bool left_mouse_click;
+static bool left_mouse_down;
+static bool right_mouse_click;
+static bool right_mouse_down;
 
 
 bool isKeyDown(InputKey key) {
@@ -25,6 +29,10 @@ bool isKeyReleased(InputKey key) {
 
 V2 mouseDifference() {
   return mouse_d;
+}
+
+bool leftMouseClicked() {
+  return left_mouse_click;
 }
 
 void initInputKeyMappings() {
@@ -56,6 +64,8 @@ void updateInput() {
   }
   mouse_d.x = 0.0f;
   mouse_d.y = 0.0f;
+  left_mouse_click = false;
+  right_mouse_click = false;
 }
 
 
@@ -83,3 +93,22 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
   mouse_pos = v2(xpos, ypos);
   mouse_d = mouse_pos - old_pos;
 }
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+  if(button == GLFW_MOUSE_BUTTON_LEFT) {
+    if (action == GLFW_PRESS) {
+      left_mouse_click = true;
+      left_mouse_down = true;
+     } else {
+       left_mouse_down = false;
+     }
+  } else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
+    if (action == GLFW_PRESS) {
+      right_mouse_click = true;
+      right_mouse_down = true;
+     } else {
+       right_mouse_down = false;
+     }
+  }
+}
+
