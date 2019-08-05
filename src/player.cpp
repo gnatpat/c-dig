@@ -94,16 +94,21 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     if(lenSq(velocity) == 0.0) {
       return;
     }
+
+    // This is the best way I found to allow walking up hills in the way I wanted. You essentially walk in two parts - 
+    // the first forward, and upwards at the same angle as the steepest hill you can climb. You then take away that
+    // extra upwards movement in combination with any other Y movement.
     V3 y_velocity = v3(0, velocity.y, 0);
     V3 xz_velocity = v3(velocity.x, 0, velocity.z);
     float xz_distance = len(xz_velocity);
-    xz_velocity.y = xz_distance * sqrt(2);
-    y_velocity.y -= xz_distance * sqrt(2);
+    float extra_y_distace = (player->on_ground ? xz_distance * sqrt(2) : 0);
+    xz_velocity.y = extra_y_distace;
+    y_velocity.y -= extra_y_distace;
 
     V3 position = player->position;
 
     // The general movement code was taken from the algorithm from http://www.peroxide.dk/papers/collision/collision.pdf
-    V3 espace_conversion = v3(0.5, PLAYER_HEIGHT/2, 0.5);
+    V3 espace_conversion = v3(0.4, PLAYER_HEIGHT/2, 0.4);
     Triangle triangles[500];
     int triangle_count = getMeshAroundPosition(&triangles[0],
                                                world,
