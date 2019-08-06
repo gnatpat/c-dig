@@ -70,6 +70,43 @@ MaybeCollision lineCollision(V3 line_start, V3 line_end, V3 sphere_pos, V3 veloc
   return collision;
 }
 
+MaybeCollision triangleCollision(Triangle triangle, V3 sphere_pos, V3 velocity) {
+  MaybeCollision collision;
+
+  float relative_velocity = dot(triangle.normal, velocity);
+  float signed_distance = signedDistanceFromTrianglePlane(triangle, sphere_pos);
+  float t0, t1;
+  if (relative_velocity == 0.0) {
+    if (fabsf(signed_distance) < 1.0) {
+      t0 = 0.0;
+      t1 = 1.0;
+    } else {
+      collision.collided = false;
+      return collision;
+    }
+  } else {
+    t0 = (1 - signed_distance) / (relative_velocity);
+    t1 = (-1 - signed_distance) / (relative_velocity);
+  }
+  if (t0 > t1 || t0 > 1.0 || t1 < 0.0) {
+    collision.collided = false;
+    return collision;
+  }
+
+  V3 plane_intersection_point = sphere_pos - triangle.normal + t0 * velocity;
+  if(!isPointInTriangle(triangle, plane_intersection_point)) {
+    collision.collided = false;
+    return collision;
+  }
+  collision.collided = true;
+  collision.time = t0;
+  collision.collision_point = plane_intersection_point;
+  collision.collision_type = FACE_COLLISION;
+  collision.triangle_info = triangle;
+  return collision;
+}
+
+
 MaybeCollision earliestCollision(MaybeCollision r1, MaybeCollision r2) {
   if (!r2.collided || r2.time < 0 || r2.time > 1) {
     return r1;

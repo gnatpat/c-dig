@@ -1,4 +1,5 @@
 float VELOCITY_EPSILON = 0.001;
+
 MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_count, int depth, bool moving_xz) {
   MaybeCollision first_collision;
   first_collision.collided = false;
@@ -7,41 +8,13 @@ MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_coun
   for (int i = 0; i < triangle_count; i++) {
     Triangle triangle = triangles[i];
 
-    float relative_velocity = dot(triangle.normal, velocity);
-    float signed_distance = signedDistanceFromTrianglePlane(triangle, position);
-    float t0, t1;
-    if (relative_velocity == 0.0) {
-      if (fabsf(signed_distance) < 1.0) {
-        t0 = 0.0;
-        t1 = 1.0;
-      } else {
-        continue;
-      }
-    } else {
-      t0 = (1 - signed_distance) / (relative_velocity);
-      t1 = (-1 - signed_distance) / (relative_velocity);
-    }
-    if (t0 > t1) {
-      continue;
-    }
-    if (t0 > 1.0 || t1 < 0.0) {
-      continue;
-    }
-
-    V3 plane_intersection_point = position - triangle.normal + t0 * velocity;
-    if(isPointInTriangle(triangle, plane_intersection_point)) {
-      MaybeCollision collision;
-      collision.collided = true;
-      collision.time = t0;
-      collision.collision_point = plane_intersection_point;
-      collision.collision_type = FACE_COLLISION;
-      collision.triangle_info = triangle;
-      first_collision = earliestCollision(first_collision, collision);
+    MaybeCollision triangle_collision = triangleCollision(triangle, position, velocity);
+    if (triangle_collision.collided) {
+      first_collision = earliestCollision(first_collision, triangle_collision);
       continue;
     }
 
     V3* vs = &triangle.vertices[0];
-
     first_collision = earliestCollision(first_collision, vertexCollision(vs[0], position, velocity));
     first_collision = earliestCollision(first_collision, vertexCollision(vs[1], position, velocity));
     first_collision = earliestCollision(first_collision, vertexCollision(vs[2], position, velocity));
@@ -52,7 +25,7 @@ MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_coun
 
   if (!first_collision.collided) {
     V3 new_position = position + velocity;
-    return { new_position, false , first_collision };
+    return { new_position, false, first_collision };
   }
 
   V3 sphere_position_at_collision = position + first_collision.time * velocity;
