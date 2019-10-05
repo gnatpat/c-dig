@@ -18,6 +18,7 @@ const float ONE_OVER_SQRT3 = 1.0 / SQRT3;
 
 const float GRAVITY = 100;
 const float MAX_Y_SPEED = 200;
+const float PLAYER_WIDTH = 0.4;
 const float PLAYER_HEIGHT = 1.8;
 
 union Matrix4x4 {

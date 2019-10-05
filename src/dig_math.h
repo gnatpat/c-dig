@@ -479,6 +479,10 @@ inline V3 floor(V3 v) {
   return v3(floor(v.x), floor(v.y), floor(v.z));
 }
 
+inline V3 fractional_part(V3 v) {
+  return v - floor(v);
+}
+
 // vector vector
 
 inline V3 cross(V3 a, V3 b) {

@@ -47,9 +47,9 @@ void putBlockAt(LoadedWorld* world, V3i pos, Block block) {
 }
 
 
-bool isPointAir(LoadedWorld* world, V3 pos) {
+bool isPointSolid(LoadedWorld* world, V3 pos) {
   BlockShape shape = getBlockAt(world, toV3i(pos)).block_shape;
-  return isPointAir(shape, fractional_part(pos.x), fractional_part(pos.y), fractional_part(pos.z));
+  return isBlockSolidAtPoint(shape, fractional_part(pos));
 }
 
 

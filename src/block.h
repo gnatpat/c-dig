@@ -1,3 +1,2 @@
-bool isPointAir(BlockShape shape, float x, float y, float z);
-float getBlockHeightAtPoint(BlockShape shape, float x, float z);
+bool isBlockSolidAtPoint(BlockShape shape, V3 pos);
 int getBlockMesh(Triangle* mesh_buffer, Block block, V3i pos);

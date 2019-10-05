@@ -101,51 +101,15 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     V3 y_velocity = v3(0, velocity.y, 0);
     V3 xz_velocity = v3(velocity.x, 0, velocity.z);
     float xz_distance = len(xz_velocity);
-    float extra_y_distace = (player->on_ground ? xz_distance * sqrt(2) : 0);
+    float extra_y_distace = xz_distance * sqrt(2);
     xz_velocity.y = extra_y_distace;
     y_velocity.y -= extra_y_distace;
 
     V3 position = player->position;
-
-    // The general movement code was taken from the algorithm from http://www.peroxide.dk/papers/collision/collision.pdf
-    V3 espace_conversion = v3(0.4, PLAYER_HEIGHT/2, 0.4);
-    Triangle triangles[500];
-    int triangle_count = getMeshAroundPosition(&triangles[0],
-                                               world,
-                                               toV3i(position)-v3i(1, 2, 1),
-                                               toV3i(position)+v3i(1, 2, 1));
-
-    Triangle espace_triangles[500];
-    for (int i = 0; i < triangle_count; i++) {
-      espace_triangles[i] = toEspaceTriangle(triangles[i], espace_conversion);
-    }
-
-    V3 espace_position = position / espace_conversion;
-    V3 y_espace_velocity = y_velocity / espace_conversion;
-    V3 xz_espace_velocity = xz_velocity / espace_conversion;
-
-    MoveResult result = move(espace_position, xz_espace_velocity, &espace_triangles[0], triangle_count, true);
-    player->latest_collision = fromEspaceCollision(result.collision, espace_conversion);
-
-    result = move(result.end_pos, y_espace_velocity, &espace_triangles[0], triangle_count, false);
-    V3 espace_new_pos = result.end_pos;
-
-    V3 new_pos = espace_new_pos * espace_conversion;
-
-#ifdef MOVEMENT_DEBUG
-    printf("===================\nAttempting to move from ");
-    printV3(player->position);
-    printf(" to ");
-    printV3(player->position + velocity);
-    printf(".\n");
-    printf("Checking %d triangles.\n", triangle_count);
-    printf("Ended up at ");
-    printV3(new_pos);
-    printf(".\n");
-#endif
-
-    player->position = new_pos;
-    player->on_ground = result.on_ground;
+    position = move(position, xz_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2));
+    position = move(position, y_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2));
+    player->position = position;
+    player->on_ground = isPointSolid(world, player->position - v3(0, PLAYER_HEIGHT/2+0.02, 0));
 
     player->focus = getFirstNonAirBlockPosition(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
     if(!player->focus.nothing && leftMouseClicked()) {
