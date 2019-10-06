@@ -141,10 +141,13 @@ struct MaybeCollision {
 };
 
 // TODO: I wonder if there's a way to generalize the `Maybe` - typesafe monads in C through macro craziness?
-struct MaybeV3i {
-  bool nothing;
-  V3i value;
+struct MaybeRayTraceResult {
+  bool hit;
+  V3i block_position;
+  V3 hit_position;
+  Triangle hit_face;
 };
+
 
 enum InputKey {
   PLAYER_MOVE_FORWARD_KEY,
@@ -318,7 +321,7 @@ struct Player {
   float jump_timer;
   bool on_ground;
   MaybeCollision latest_collision;
-  MaybeV3i focus;
+  MaybeRayTraceResult focus;
 };
 
 struct Interface {

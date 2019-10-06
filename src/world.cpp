@@ -53,20 +53,64 @@ bool isPointSolid(LoadedWorld* world, V3 pos) {
 }
 
 
-MaybeV3i getFirstNonAirBlockPosition(LoadedWorld* world, V3 from, V3 direction, float max_distance) {
-  //TODO: need to do some better raytracing, but this will do for now
-  float step_distance = 0.01;
-  V3 cursor = from;
-  V3 step = normalise(direction) * step_distance;
+MaybeRayTraceResult doesRayHitTriangle(V3 from, V3 direction, Triangle triangle, V3i block_position) {
+  MaybeRayTraceResult result;
+
+  float direction_dot_normal = dot(direction, -triangle.normal);
+  if (direction_dot_normal == 0.0) {
+    result.hit = false;
+    return result;
+  }
+
+  V3 from_in_triangle_coords = from - toV3(block_position);
+  V3 ray_hit_position_on_triangle_plane = from_in_triangle_coords + signedDistanceFromTrianglePlane(triangle, from_in_triangle_coords)/direction_dot_normal * direction;
+
+  if (!isPointInTriangle(triangle, ray_hit_position_on_triangle_plane)) {
+    result.hit = false;
+    return result;
+  }
+
+  result.hit = true;
+  result.hit_position = ray_hit_position_on_triangle_plane;
+  result.hit_face = triangle;
+  result.block_position = block_position;
+  return result;
+}
+
+
+float EPSILON = 0.01;
+MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float max_distance) {
   float distance_left = max_distance;
-  while(getBlockAt(world, toV3i(cursor)).block_shape == AIR && distance_left > 0) {
-    cursor += step;
+  while(distance_left > 0) {
+    V3 current_location = from + direction * (max_distance - distance_left);
+    V3i current_block = toV3i(current_location);
+    BlockModel block_model = BLOCK_MODELS[getBlockAt(world, current_block).block_shape];
+    for (int triangle_index = 0; triangle_index < block_model.triangle_count; triangle_index++) {
+      MaybeRayTraceResult result = doesRayHitTriangle(current_location, direction, block_model.mesh[triangle_index], current_block);
+      if (result.hit) {
+        return result;
+      }
+    }
+
+    V3 next_block = toV3(current_block) + v3(0.5, 0.5, 0.5) - EPSILON + copysign(v3(0.5, 0.5, 0.5) + EPSILON, direction);
+    V3 distance_to_next_block = next_block - current_location;
+    V3 step_distances = distance_to_next_block / direction;
+
+    float step_distance = max(step_distances);
+    if(step_distances.x < step_distance && step_distances.x != 0.0) {
+      step_distance = step_distances.x;
+    }
+    if(step_distances.y < step_distance && step_distances.y != 0.0) {
+      step_distance = step_distances.y;
+    }
+    if(step_distances.z < step_distance && step_distances.z != 0.0) {
+      step_distance = step_distances.z;
+    }
     distance_left -= step_distance;
   }
-  if (distance_left < 0) {
-    return { true, 0 };
-  }
-  return { false, toV3i(cursor) };
+  MaybeRayTraceResult result;
+  result.hit = false;
+  return result;
 }
 
 

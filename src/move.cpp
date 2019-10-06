@@ -31,7 +31,6 @@ bool collidesAtTime(V3 start_position, V3 velocity, LoadedWorld* world, V3 recta
   for (int x = min_point.x; x <= max_point.x; x++) {
     for (int y = min_point.y; y <= max_point.y; y++) {
       for (int z = min_point.z; z <= max_point.z; z++) {
-        printf("Checking block {%d, %d, %d}.\n", x, y, z);
         BlockModel model = BLOCK_MODELS[getBlockAt(world, v3i(x, y, z)).block_shape];
         V3 block_pos = v3(x, y, z);
         for (int triangle_index = 0; triangle_index < model.triangle_count; triangle_index++) {

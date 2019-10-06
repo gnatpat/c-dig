@@ -111,9 +111,9 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     player->position = position;
     player->on_ground = isPointSolid(world, player->position - v3(0, PLAYER_HEIGHT/2+0.02, 0));
 
-    player->focus = getFirstNonAirBlockPosition(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
-    if(!player->focus.nothing && leftMouseClicked()) {
-      putBlockAt(world, player->focus.value, { AIR });
+    player->focus = blockRayTrace(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
+    if(player->focus.hit && leftMouseClicked()) {
+      putBlockAt(world, player->focus.block_position, { AIR });
     }
   }
 }

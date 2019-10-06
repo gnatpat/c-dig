@@ -467,6 +467,10 @@ inline float min(V3 v) {
   return fminf(fminf(v.x, v.y), v.z);
 }
 
+inline float max(V3 v) {
+  return fmaxf(fmaxf(v.x, v.y), v.z);
+}
+
 inline V3 normalise(V3 v) {
   float length = len(v);
   if (length == 0.0) {
