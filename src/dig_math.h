@@ -991,45 +991,6 @@ QuadraticSolutions solveQuadratic(float a, float b, float c) {
 }
 
 
-Triangle toEspaceTriangle(Triangle t, V3 espace_conversion) {
-    Triangle espace_triangle = t;
-    espace_triangle.vertices[0] /= espace_conversion;
-    espace_triangle.vertices[1] /= espace_conversion;
-    espace_triangle.vertices[2] /= espace_conversion;
-    espace_triangle.normal *= espace_conversion;
-    espace_triangle.normal = normalise(espace_triangle.normal);
-
-    return espace_triangle;
-}
-
-Triangle fromEspaceTriangle(Triangle espace_triangle, V3 espace_conversion) {
-    Triangle triangle = espace_triangle;
-    triangle.vertices[0] *= espace_conversion;
-    triangle.vertices[1] *= espace_conversion;
-    triangle.vertices[2] *= espace_conversion;
-    triangle.normal /= espace_conversion;
-    triangle.normal = normalise(espace_triangle.normal);
-
-    return triangle;
-}
-
-MaybeCollision fromEspaceCollision(MaybeCollision espace_collision, V3 espace_conversion) {
-  if (!espace_collision.collided) {
-    return espace_collision;
-  }
-  MaybeCollision collision;
-  collision = espace_collision;
-  collision.collision_point *= espace_conversion;
-  if (collision.collision_type == LINE_COLLISION) {
-    collision.line_info.start *= espace_conversion;
-    collision.line_info.end *= espace_conversion;
-  } else if (collision.collision_type == FACE_COLLISION) {
-    collision.triangle_info = fromEspaceTriangle(collision.triangle_info, espace_conversion);
-  }
-  return collision;
-}
-
-
 float signedDistanceFromPlane(V3 normal, V3 point_on_plane, V3 p) {
   return dot(p - point_on_plane, normal);
 }
