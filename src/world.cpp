@@ -71,7 +71,7 @@ MaybeRayTraceResult doesRayHitTriangle(V3 from, V3 direction, Triangle triangle,
   }
 
   result.hit = true;
-  result.hit_position = ray_hit_position_on_triangle_plane;
+  result.hit_position = ray_hit_position_on_triangle_plane + toV3(block_position);
   result.hit_face = triangle;
   result.block_position = block_position;
   return result;
@@ -85,11 +85,22 @@ MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, flo
     V3 current_location = from + direction * (max_distance - distance_left);
     V3i current_block = toV3i(current_location);
     BlockModel block_model = BLOCK_MODELS[getBlockAt(world, current_block).block_shape];
+
+    float closest_result_distance = distance_left;
+    MaybeRayTraceResult closest_result;
+    closest_result.hit = false;
     for (int triangle_index = 0; triangle_index < block_model.triangle_count; triangle_index++) {
       MaybeRayTraceResult result = doesRayHitTriangle(current_location, direction, block_model.mesh[triangle_index], current_block);
       if (result.hit) {
-        return result;
+        float distance_to_hit = len(result.hit_position - current_location);
+        if (distance_to_hit < closest_result_distance) {
+          closest_result = result;
+          closest_result_distance = distance_to_hit;
+        }
       }
+    }
+    if (closest_result.hit) {
+      return closest_result;
     }
 
     V3 next_block = toV3(current_block) + v3(0.5, 0.5, 0.5) - EPSILON + copysign(v3(0.5, 0.5, 0.5) + EPSILON, direction);

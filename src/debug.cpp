@@ -12,21 +12,17 @@ void debugMeshAroundPlayer(BasicRenderObject* debug_triangles, GameData* game_da
 }
 
 void debugCollision(BasicRenderObject* debug_triangles, GameData* game_data) {
-  Player* player = &game_data->player;
-  MaybeCollision* collision = &player->latest_collision;
-  if(!collision->collided) {
+  if(!DEBUG_RESULT.hit) {
     debug_triangles->triangle_count = 0;
     return;
   }
-  if (collision->collision_type == FACE_COLLISION) {
-    debug_triangles->triangle_count = 1;
-    debug_triangles->triangles[0] = collision->triangle_info;
-  }
+  debug_triangles->triangle_count = 1;
+  debug_triangles->triangles[0] = DEBUG_RESULT.hit_face;
   markDirty(debug_triangles);
 }
 
 void renderDebug(DebugData* debug_data, GLuint shader, Matrix4x4 view, Matrix4x4 projection) {
-  render(&debug_data->mesh_around_player, shader, view, projection, WHITE);
+  //render(&debug_data->mesh_around_player, shader, view, projection, WHITE);
   render(&debug_data->collision_triangles, shader, view, projection, RED);
 }
 

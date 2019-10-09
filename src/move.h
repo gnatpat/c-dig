@@ -5,4 +5,6 @@ struct MoveResult {
 };
 
 MoveResult move(V3 position, V3 velocity, Triangle* triangles, int triangle_count);
-V3 move(V3 position, V3 velocity, LoadedWorld* world, V3 rectangle_radii);
+V3 move(V3 position, V3 velocity, LoadedWorld* world, V3 rectangle_radii, bool slide);
+
+MaybeRayTraceResult DEBUG_RESULT;

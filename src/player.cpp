@@ -106,9 +106,11 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     y_velocity.y -= extra_y_distace;
 
     V3 position = player->position;
-    position = move(position, xz_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2));
-    position = move(position, y_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2));
+    position = move(position, xz_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), true);
+    position = move(position, y_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), false);
     player->position = position;
+    printV3(player->position);
+    printf("\n");
     player->on_ground = isPointSolid(world, player->position - v3(0, PLAYER_HEIGHT/2+0.02, 0));
 
     player->focus = blockRayTrace(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
