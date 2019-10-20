@@ -326,6 +326,8 @@ struct Player {
 
 struct Interface {
   BasicRenderObject block_focus;
+  BasicRenderObject block_focus_face;
+  BasicRenderObject centre_point;
 };
 
 struct GameData {

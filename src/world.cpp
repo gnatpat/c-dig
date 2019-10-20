@@ -55,15 +55,17 @@ bool isPointSolid(LoadedWorld* world, V3 pos) {
 
 MaybeRayTraceResult doesRayHitTriangle(V3 from, V3 direction, Triangle triangle, V3i block_position) {
   MaybeRayTraceResult result;
+  V3 from_in_triangle_coords = from - toV3(block_position);
+  float normal_distance = signedDistanceFromTrianglePlane(triangle, from_in_triangle_coords);
 
   float direction_dot_normal = dot(direction, -triangle.normal);
-  if (direction_dot_normal == 0.0) {
+  if (direction_dot_normal == 0.0 && normal_distance != 0.0) {
     result.hit = false;
     return result;
   }
 
-  V3 from_in_triangle_coords = from - toV3(block_position);
-  V3 ray_hit_position_on_triangle_plane = from_in_triangle_coords + signedDistanceFromTrianglePlane(triangle, from_in_triangle_coords)/direction_dot_normal * direction;
+  float distance = normal_distance == 0.0 ? 0.0 : normal_distance/direction_dot_normal;
+  V3 ray_hit_position_on_triangle_plane = from_in_triangle_coords + distance * direction;
 
   if (!isPointInTriangle(triangle, ray_hit_position_on_triangle_plane)) {
     result.hit = false;
@@ -72,19 +74,30 @@ MaybeRayTraceResult doesRayHitTriangle(V3 from, V3 direction, Triangle triangle,
 
   result.hit = true;
   result.hit_position = ray_hit_position_on_triangle_plane + toV3(block_position);
-  result.hit_face = triangle;
+  result.hit_face = shiftTriangle(triangle, toV3(block_position));
   result.block_position = block_position;
   return result;
 }
 
 
-float EPSILON = 0.01;
+float EPSILON = 0.000001;
 MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float max_distance) {
   float distance_left = max_distance;
   while(distance_left > 0) {
     V3 current_location = from + direction * (max_distance - distance_left);
-    V3i current_block = toV3i(current_location);
+    V3i current_block = toV3i(current_location + copysign(v3(EPSILON, EPSILON, EPSILON), direction));
     BlockModel block_model = BLOCK_MODELS[getBlockAt(world, current_block).block_shape];
+
+    printf("==RAY TRACE==\n");
+    printf("Starting at ");
+    printV3(current_location);
+    printf("\nSo block is ");
+    printV3i(current_block);
+    printf("\nMoving in direction ");
+    printV3(direction);
+    printf("\nWith %.6f distance left.\n", distance_left);
+    printf("Block has %d triangles.\n", block_model.triangle_count);
+
 
     float closest_result_distance = distance_left;
     MaybeRayTraceResult closest_result;
@@ -103,7 +116,7 @@ MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, flo
       return closest_result;
     }
 
-    V3 next_block = toV3(current_block) + v3(0.5, 0.5, 0.5) - EPSILON + copysign(v3(0.5, 0.5, 0.5) + EPSILON, direction);
+    V3 next_block = toV3(current_block) + v3(0.5, 0.5, 0.5) + copysign(v3(0.5, 0.5, 0.5), direction);
     V3 distance_to_next_block = next_block - current_location;
     V3 step_distances = distance_to_next_block / direction;
 

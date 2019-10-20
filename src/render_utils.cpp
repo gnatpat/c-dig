@@ -10,15 +10,21 @@ void markDirty(BasicRenderObject* basic_render_object) {
   basic_render_object->dirty = true;
 }
 
-void fillRenderData(BasicRenderObject* basic_render_object) {
-  V3* cursor = basic_render_object->vertices;
-  //TODO: basic render object shouldn't blow out its triangles
+void blowOutRenderObject(BasicRenderObject* basic_render_object, float distance) {
   for(int i = 0; i < basic_render_object->triangle_count; i++) {
     Triangle* triangle = basic_render_object->triangles + i;
-    V3 normal_offset = triangle->normal * 0.001;
-    *cursor = triangle->vertices[0] + normal_offset;
-    *(cursor+1) = triangle->vertices[1] + normal_offset;
-    *(cursor+2) = triangle->vertices[2] + normal_offset;
+    V3 normal_offset = triangle->normal * distance;
+    *triangle = shiftTriangle(*triangle, normal_offset);
+  }
+}
+
+void fillRenderData(BasicRenderObject* basic_render_object) {
+  V3* cursor = basic_render_object->vertices;
+  for(int i = 0; i < basic_render_object->triangle_count; i++) {
+    Triangle* triangle = basic_render_object->triangles + i;
+    *cursor = triangle->vertices[0];
+    *(cursor+1) = triangle->vertices[1];
+    *(cursor+2) = triangle->vertices[2];
     cursor += 3;
   }
   glBindVertexArray(basic_render_object->vao);

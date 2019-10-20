@@ -292,7 +292,7 @@ inline V3 v3(float x, float y, float z) {
 }
 
 inline void printV3(V3 v) {
-  printf("[ %2.2f, %2.2f, %2.2f ]", v.x, v.y, v.z);
+  printf("[ %2.5f, %2.5f, %2.5f ]", v.x, v.y, v.z);
 }
 
 inline V3i toV3i(V3 v) {
@@ -1023,3 +1023,9 @@ bool isPointInTriangle(Triangle t, V3 pos) {
   return u >= 0 && v >= 0 && (u + v) < 1;
 }
 
+inline Triangle shiftTriangle(Triangle t, V3 v) {
+  t.vertices[0] += v;
+  t.vertices[1] += v;
+  t.vertices[2] += v;
+  return t;
+}
