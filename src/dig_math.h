@@ -1021,27 +1021,7 @@ bool isPointInTriangle(Triangle t, V3 pos) {
   float u = (axis1_dist_sq * axis_0_of_pos - crossover * axis_1_of_pos) * inv_denom;
   float v = (axis0_dist_sq * axis_1_of_pos - crossover * axis_0_of_pos) * inv_denom;
 
-  return u >= 0 && v >= 0 && (u + v) < 1;
-}
-
-bool isPointInTriangleExcludingEdges(Triangle t, V3 pos) {
-  V3 axis0 = t.vertices[1] - t.vertices[0];
-  V3 axis1 = t.vertices[2] - t.vertices[0];
-  V3 relative_pos = pos - t.vertices[0];
-
-  float axis0_dist_sq = dot(axis0, axis0);
-  float axis1_dist_sq = dot(axis1, axis1);
-
-  float axis_0_of_pos = dot(axis0, relative_pos);
-  float axis_1_of_pos = dot(axis1, relative_pos);
-
-  float crossover = dot(axis0, axis1);
-
-  float inv_denom = 1 / (axis0_dist_sq * axis1_dist_sq - crossover * crossover);
-  float u = (axis1_dist_sq * axis_0_of_pos - crossover * axis_1_of_pos) * inv_denom;
-  float v = (axis0_dist_sq * axis_1_of_pos - crossover * axis_0_of_pos) * inv_denom;
-
-  return u > 0 && v > 0 && (u + v) < 1;
+  return u >= 0 && v >= 0 && (u + v) <= 1;
 }
 
 

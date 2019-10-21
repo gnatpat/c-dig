@@ -52,33 +52,6 @@ bool isPointSolid(LoadedWorld* world, V3 pos) {
   return isBlockSolidAtPoint(shape, fractional_part(pos));
 }
 
-MaybeRayTraceResult doesRayHitGoIntoTriangle(V3 from, V3 direction, Triangle triangle, V3i block_position) {
-  MaybeRayTraceResult result;
-  V3 from_in_triangle_coords = from - toV3(block_position);
-  float normal_distance = signedDistanceFromTrianglePlane(triangle, from_in_triangle_coords);
-
-  float direction_dot_normal = dot(direction, -triangle.normal);
-  if (direction_dot_normal <= 0.0) {
-    result.hit = false;
-    return result;
-  }
-  float distance = normal_distance/direction_dot_normal;
-  V3 ray_hit_position_on_triangle_plane = from_in_triangle_coords + distance * direction;
-
-  if (!isPointInTriangleExcludingEdges(triangle, ray_hit_position_on_triangle_plane)) {
-    result.hit = false;
-    return result;
-  }
-
-  result.hit = true;
-  result.hit_position = ray_hit_position_on_triangle_plane + toV3(block_position);
-  result.hit_face = shiftTriangle(triangle, toV3(block_position));
-  result.block_position = block_position;
-  return result;
-}
-
-
-
 MaybeRayTraceResult doesRayHitTriangle(V3 from, V3 direction, Triangle triangle, V3i block_position) {
   MaybeRayTraceResult result;
   V3 from_in_triangle_coords = from - toV3(block_position);
@@ -123,7 +96,7 @@ MaybeRayTraceResult getClosestResult(MaybeRayTraceResult r1, MaybeRayTraceResult
   return r1;
 }
 
-MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance, V3i current_block, bool include_edges) {
+MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance, V3i current_block) {
   if (distance <= 0.0) {
     MaybeRayTraceResult result;
     result.hit = false;
@@ -131,24 +104,20 @@ MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, flo
   }
   BlockModel block_model = BLOCK_MODELS[getBlockAt(world, current_block).block_shape];
 
-  //printf("At ");
-  //printV3(from);
-  //printf("\nBlock is ");
-  //printV3i(current_block);
-  //printf("\nMoving in direction ");
-  //printV3(direction);
-  //printf("\nWith %.6f distance left.\n", distance);
-  //printf("Block has %d triangles.\n", block_model.triangle_count);
+  printf("At ");
+  printV3(from);
+  printf("\nBlock is ");
+  printV3i(current_block);
+  printf("\nMoving in direction ");
+  printV3(direction);
+  printf("\nWith %.6f distance left.\n", distance);
+  printf("Block has %d triangles.\n", block_model.triangle_count);
 
   MaybeRayTraceResult closest_result;
   closest_result.hit = false;
   for (int triangle_index = 0; triangle_index < block_model.triangle_count; triangle_index++) {
     MaybeRayTraceResult result;
-    if (include_edges) {
-      result = doesRayHitTriangle(from, direction, block_model.mesh[triangle_index], current_block);
-    } else {
-      result = doesRayHitGoIntoTriangle(from, direction, block_model.mesh[triangle_index], current_block);
-    }
+    result = doesRayHitTriangle(from, direction, block_model.mesh[triangle_index], current_block);
     if (result.hit) {
       float distance_to_hit = len(result.hit_position - from);
       result.distance = distance_to_hit;
@@ -178,14 +147,14 @@ MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, flo
   assert(smallest_distance >= 0);
   float distance_left = distance - smallest_distance;
   V3 next_position = from + direction * smallest_distance;
-  MaybeRayTraceResult result = blockRayTrace(world, next_position, direction, distance_left, next_block, include_edges);
+  MaybeRayTraceResult result = blockRayTrace(world, next_position, direction, distance_left, next_block);
   result.distance += smallest_distance;
   return result;
 }
 
-MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance, bool include_edges) {
+MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance) {
   //printf("==RAY TRACE==\n");
-  return blockRayTrace(world, from, direction, distance, toV3i(floor(from)), include_edges);
+  return blockRayTrace(world, from, direction, distance, toV3i(floor(from)));
 }
 
 void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
