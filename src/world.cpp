@@ -52,19 +52,50 @@ bool isPointSolid(LoadedWorld* world, V3 pos) {
   return isBlockSolidAtPoint(shape, fractional_part(pos));
 }
 
+MaybeRayTraceResult doesRayHitGoIntoTriangle(V3 from, V3 direction, Triangle triangle, V3i block_position) {
+  MaybeRayTraceResult result;
+  V3 from_in_triangle_coords = from - toV3(block_position);
+  float normal_distance = signedDistanceFromTrianglePlane(triangle, from_in_triangle_coords);
+
+  float direction_dot_normal = dot(direction, -triangle.normal);
+  if (direction_dot_normal <= 0.0) {
+    result.hit = false;
+    return result;
+  }
+  float distance = normal_distance/direction_dot_normal;
+  V3 ray_hit_position_on_triangle_plane = from_in_triangle_coords + distance * direction;
+
+  if (!isPointInTriangleExcludingEdges(triangle, ray_hit_position_on_triangle_plane)) {
+    result.hit = false;
+    return result;
+  }
+
+  result.hit = true;
+  result.hit_position = ray_hit_position_on_triangle_plane + toV3(block_position);
+  result.hit_face = shiftTriangle(triangle, toV3(block_position));
+  result.block_position = block_position;
+  return result;
+}
+
+
 
 MaybeRayTraceResult doesRayHitTriangle(V3 from, V3 direction, Triangle triangle, V3i block_position) {
   MaybeRayTraceResult result;
   V3 from_in_triangle_coords = from - toV3(block_position);
   float normal_distance = signedDistanceFromTrianglePlane(triangle, from_in_triangle_coords);
 
+
   float direction_dot_normal = dot(direction, -triangle.normal);
-  if (direction_dot_normal == 0.0 && normal_distance != 0.0) {
+  if (direction_dot_normal == 0.0) {
+    result.hit = false;
+    return result;
+  }
+  if (normal_distance == 0.0 && direction_dot_normal < 0) {
     result.hit = false;
     return result;
   }
 
-  float distance = normal_distance == 0.0 ? 0.0 : normal_distance/direction_dot_normal;
+  float distance = normal_distance/direction_dot_normal;
   V3 ray_hit_position_on_triangle_plane = from_in_triangle_coords + distance * direction;
 
   if (!isPointInTriangle(triangle, ray_hit_position_on_triangle_plane)) {
@@ -79,64 +110,83 @@ MaybeRayTraceResult doesRayHitTriangle(V3 from, V3 direction, Triangle triangle,
   return result;
 }
 
-
-float EPSILON = 0.000001;
-MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float max_distance) {
-  float distance_left = max_distance;
-  while(distance_left > 0) {
-    V3 current_location = from + direction * (max_distance - distance_left);
-    V3i current_block = toV3i(current_location + copysign(v3(EPSILON, EPSILON, EPSILON), direction));
-    BlockModel block_model = BLOCK_MODELS[getBlockAt(world, current_block).block_shape];
-
-    printf("==RAY TRACE==\n");
-    printf("Starting at ");
-    printV3(current_location);
-    printf("\nSo block is ");
-    printV3i(current_block);
-    printf("\nMoving in direction ");
-    printV3(direction);
-    printf("\nWith %.6f distance left.\n", distance_left);
-    printf("Block has %d triangles.\n", block_model.triangle_count);
-
-
-    float closest_result_distance = distance_left;
-    MaybeRayTraceResult closest_result;
-    closest_result.hit = false;
-    for (int triangle_index = 0; triangle_index < block_model.triangle_count; triangle_index++) {
-      MaybeRayTraceResult result = doesRayHitTriangle(current_location, direction, block_model.mesh[triangle_index], current_block);
-      if (result.hit) {
-        float distance_to_hit = len(result.hit_position - current_location);
-        if (distance_to_hit < closest_result_distance) {
-          closest_result = result;
-          closest_result_distance = distance_to_hit;
-        }
-      }
-    }
-    if (closest_result.hit) {
-      return closest_result;
-    }
-
-    V3 next_block = toV3(current_block) + v3(0.5, 0.5, 0.5) + copysign(v3(0.5, 0.5, 0.5), direction);
-    V3 distance_to_next_block = next_block - current_location;
-    V3 step_distances = distance_to_next_block / direction;
-
-    float step_distance = max(step_distances);
-    if(step_distances.x < step_distance && step_distances.x != 0.0) {
-      step_distance = step_distances.x;
-    }
-    if(step_distances.y < step_distance && step_distances.y != 0.0) {
-      step_distance = step_distances.y;
-    }
-    if(step_distances.z < step_distance && step_distances.z != 0.0) {
-      step_distance = step_distances.z;
-    }
-    distance_left -= step_distance;
+MaybeRayTraceResult getClosestResult(MaybeRayTraceResult r1, MaybeRayTraceResult r2) {
+  if (!r2.hit) {
+    return r1;
   }
-  MaybeRayTraceResult result;
-  result.hit = false;
+  if (!r1.hit) {
+    return r2;
+  }
+  if (r2.distance < r1.distance) {
+    return r2;
+  }
+  return r1;
+}
+
+MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance, V3i current_block, bool include_edges) {
+  if (distance <= 0.0) {
+    MaybeRayTraceResult result;
+    result.hit = false;
+    return result;
+  }
+  BlockModel block_model = BLOCK_MODELS[getBlockAt(world, current_block).block_shape];
+
+  //printf("At ");
+  //printV3(from);
+  //printf("\nBlock is ");
+  //printV3i(current_block);
+  //printf("\nMoving in direction ");
+  //printV3(direction);
+  //printf("\nWith %.6f distance left.\n", distance);
+  //printf("Block has %d triangles.\n", block_model.triangle_count);
+
+  MaybeRayTraceResult closest_result;
+  closest_result.hit = false;
+  for (int triangle_index = 0; triangle_index < block_model.triangle_count; triangle_index++) {
+    MaybeRayTraceResult result;
+    if (include_edges) {
+      result = doesRayHitTriangle(from, direction, block_model.mesh[triangle_index], current_block);
+    } else {
+      result = doesRayHitGoIntoTriangle(from, direction, block_model.mesh[triangle_index], current_block);
+    }
+    if (result.hit) {
+      float distance_to_hit = len(result.hit_position - from);
+      result.distance = distance_to_hit;
+      closest_result = getClosestResult(closest_result, result);
+    }
+  }
+  if (closest_result.hit) {
+    return closest_result;
+  }
+
+  float smallest_distance = distance;
+  V3i next_block = current_block;
+  for (int i = 0; i < 3; i++) {
+    if(direction.v[i] == 0.0) {
+      continue;
+    }
+    float next_block_location = current_block.v[i] + copysignf(1, direction.v[i]);
+    float next_position = next_block_location + 0.5 - copysignf(0.5, direction.v[i]);
+    float distance_to_next_position = next_position - from.v[i];
+    float step_distance = distance_to_next_position / direction.v[i];
+    if (step_distance < smallest_distance) {
+      smallest_distance = step_distance;
+      next_block = current_block;
+      next_block.v[i] = next_block_location;
+    }
+  }
+  assert(smallest_distance >= 0);
+  float distance_left = distance - smallest_distance;
+  V3 next_position = from + direction * smallest_distance;
+  MaybeRayTraceResult result = blockRayTrace(world, next_position, direction, distance_left, next_block, include_edges);
+  result.distance += smallest_distance;
   return result;
 }
 
+MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance, bool include_edges) {
+  //printf("==RAY TRACE==\n");
+  return blockRayTrace(world, from, direction, distance, toV3i(floor(from)), include_edges);
+}
 
 void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
   // We should assert we have the lock here.

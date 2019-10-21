@@ -146,6 +146,7 @@ struct MaybeRayTraceResult {
   V3i block_position;
   V3 hit_position;
   Triangle hit_face;
+  float distance;
 };
 
 

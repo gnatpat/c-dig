@@ -1,6 +1,7 @@
 void initWorld(LoadedWorld* world);
 Block getBlockAt(LoadedWorld* world, V3i pos);
-MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float max_distance);
+MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance, bool include_edges);
+MaybeRayTraceResult getClosestResult(MaybeRayTraceResult r1, MaybeRayTraceResult r2);
 void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4* view, Matrix4x4* projection);
 void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction);
 bool isPointSolid(LoadedWorld* world, V3 pos);
