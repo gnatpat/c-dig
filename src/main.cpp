@@ -35,8 +35,10 @@ int main(void) {
                                              "resources/shaders/terrain_shader.fs");
   GLuint debug_triangle_shader = compileShaderOrDie("resources/shaders/debug_triangles.vs",
                                                     "resources/shaders/debug_triangles.fs");
+  GLuint text_shader = compileShaderOrDie("resources/shaders/text_shader.vs",
+                                          "resources/shaders/text_shader.fs");
 
-  GameData* game_data = (GameData*) malloc(sizeof(GameData));
+  GameData* game_data = (GameData*) calloc(1, sizeof(GameData));
   initWorld(&game_data->loaded_world);
   initInterface(&game_data->interface);
 
@@ -47,12 +49,17 @@ int main(void) {
   initPlayer(&game_data->player);
 
   bool block_viewer_mode = false;
-  BlockViewerData* block_viewer_data = (BlockViewerData*) malloc(sizeof(BlockViewerData));
+  BlockViewerData* block_viewer_data = (BlockViewerData*) calloc(1, sizeof(BlockViewerData));
   initBlockViewer(block_viewer_data);
 
   bool debug_mode = false;
-  DebugData* debug_data = (DebugData*) malloc(sizeof(DebugData));
+  DebugData* debug_data = (DebugData*) calloc(1, sizeof(DebugData));
   initDebugData(debug_data);
+
+  Font* font = (Font*) calloc(1, sizeof(Font));
+  loadFontOrDie(font, "resources/font/lato.png", "resources/font/lato.fnt");
+
+  Text test_text = createText("The quick brown fox, jumps over the lazy dog.", font);
 
   float t = 0.0;
 
@@ -126,6 +133,7 @@ int main(void) {
       if(debug_mode) {
         renderDebug(debug_data, debug_triangle_shader, view, projection);
       }
+      renderText(test_text, v2(-0.5, 0.0), 0.08, text_shader);
     }
 
     glfwSwapBuffers(window);

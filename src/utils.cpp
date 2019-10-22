@@ -24,7 +24,7 @@ void concat(char* s1, char* s2, char* out) {
 void addToLinkedList(LinkedList** list, void* content) {
   assert(content != NULL);
 
-  LinkedList* new_node = (LinkedList*)malloc(sizeof(LinkedList));
+  LinkedList* new_node = (LinkedList*)calloc(1, sizeof(LinkedList));
   new_node->content = content;
   new_node->next = *list;
   *list = new_node;

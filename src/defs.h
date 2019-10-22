@@ -344,5 +344,34 @@ struct BlockViewerData {
   LoadedWorld empty_world;
 };
 
+struct FontCharData {
+  int x;
+  int y;
+  int width;
+  int height;
+  int x_offset;
+  int y_offset;
+  int x_advance;
+};
+
+struct FontData {
+  int line_height;
+  int line_base;
+  int texture_width;
+  int texture_height;
+  FontCharData chars[128];
+  int kerning[128][128];
+};
+
+struct Font {
+  GLuint texture;
+  FontData data;
+};
+
+struct Text {
+  GLuint vao;
+  int length;
+  Font* font;
+};
 
 #pragma GCC diagnostic error "-Wpedantic"

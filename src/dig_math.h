@@ -734,6 +734,21 @@ inline V2 operator-(V2 v) {
   return result;
 }
 
+inline V2 operator/(V2 v, V2 u) {
+  V2 result;
+
+  result.x = v.x / u.x;
+  result.y = v.y / u.y;
+  
+  return result;
+}
+
+inline V2 & operator/=(V2 &v, V2 u) {
+  v = u / v;
+  return v;
+}
+
+
 // V2 and float operations
 
 inline V2 operator+(float a, V2 v) {
