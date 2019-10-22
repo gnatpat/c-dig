@@ -40,6 +40,9 @@ void updateInterface(GameData* game_data) {
 void renderInterface(Interface* interface, GLuint shader, Matrix4x4 view, Matrix4x4 projection) {
   render(&interface->block_focus, shader, view, projection, WHITE);
   render(&interface->block_focus_face, shader, view, projection, RED);
+
+  glDisable(GL_DEPTH_TEST);
   render(&interface->centre_point, shader, identity(), identity(), WHITE);
+  glEnable(GL_DEPTH_TEST);
 }
 

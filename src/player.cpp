@@ -91,25 +91,27 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     player->speed.y = fmaxf(-MAX_Y_SPEED, player->speed.y);
 
     V3 velocity = player->speed * dt;
-    if(lenSq(velocity) == 0.0) {
-      return;
+    if(lenSq(velocity) > 0.0) {
+      // This is the best way I found to allow walking up hills in the way I wanted. You essentially walk in two parts - 
+      // the first forward, and upwards at the same angle as the steepest hill you can climb. You then take away that
+      // extra upwards movement in combination with any other Y movement.
+      V3 y_velocity = v3(0, velocity.y, 0);
+      V3 xz_velocity = v3(velocity.x, 0, velocity.z);
+      float xz_distance = len(xz_velocity);
+      float extra_y_distace = xz_distance * sqrt(2);
+      xz_velocity.y = extra_y_distace;
+      y_velocity.y -= extra_y_distace;
+
+      V3 position = player->position;
+      position = move(position, xz_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), true);
+      position = move(position, y_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), false);
+      player->position = position;
+      player->on_ground = (
+          isPointSolid(world, player->position - v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2+0.02, PLAYER_WIDTH/2)) ||
+          isPointSolid(world, player->position - v3(-PLAYER_WIDTH/2, PLAYER_HEIGHT/2+0.02, PLAYER_WIDTH/2)) ||
+          isPointSolid(world, player->position - v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2+0.02, -PLAYER_WIDTH/2)) ||
+          isPointSolid(world, player->position - v3(-PLAYER_WIDTH/2, PLAYER_HEIGHT/2+0.02, -PLAYER_WIDTH/2)));
     }
-
-    // This is the best way I found to allow walking up hills in the way I wanted. You essentially walk in two parts - 
-    // the first forward, and upwards at the same angle as the steepest hill you can climb. You then take away that
-    // extra upwards movement in combination with any other Y movement.
-    V3 y_velocity = v3(0, velocity.y, 0);
-    V3 xz_velocity = v3(velocity.x, 0, velocity.z);
-    float xz_distance = len(xz_velocity);
-    float extra_y_distace = xz_distance * sqrt(2);
-    xz_velocity.y = extra_y_distace;
-    y_velocity.y -= extra_y_distace;
-
-    V3 position = player->position;
-    position = move(position, xz_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), true);
-    position = move(position, y_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), false);
-    player->position = position;
-    player->on_ground = isPointSolid(world, player->position - v3(0, PLAYER_HEIGHT/2+0.02, 0));
 
     player->focus = blockRayTrace(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
     if(player->focus.hit && leftMouseClicked()) {
