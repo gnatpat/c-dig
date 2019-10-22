@@ -1,5 +1,5 @@
 void initPlayer(Player* player) {
-  player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
+  player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
   player->pitch = 0.0f;
   player->yaw = 0.0f;
   player->speed = v3(0, 0, 0);
@@ -106,14 +106,11 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
     y_velocity.y -= extra_y_distace;
 
     V3 position = player->position;
-    printf("======MOVE======\n");
     position = move(position, xz_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), true);
-    printf("==\n");
     position = move(position, y_velocity, world, v3(PLAYER_WIDTH/2, PLAYER_HEIGHT/2, PLAYER_WIDTH/2), false);
     player->position = position;
     player->on_ground = isPointSolid(world, player->position - v3(0, PLAYER_HEIGHT/2+0.02, 0));
 
-    printf("======FOCUS======\n");
     player->focus = blockRayTrace(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
     if(player->focus.hit && leftMouseClicked()) {
       putBlockAt(world, player->focus.block_position, { AIR });

@@ -31,8 +31,8 @@ int main(void) {
     return -1;
   }
 
-  GLuint terrain_shader = compileShaderOrDie("resources/shaders/shader_no_texture.vs",
-                                             "resources/shaders/shader_no_texture.fs");
+  GLuint terrain_shader = compileShaderOrDie("resources/shaders/terrain_shader.vs",
+                                             "resources/shaders/terrain_shader.fs");
   GLuint debug_triangle_shader = compileShaderOrDie("resources/shaders/debug_triangles.vs",
                                                     "resources/shaders/debug_triangles.fs");
 

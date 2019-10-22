@@ -82,13 +82,6 @@ V3 move(V3 position, V3 velocity, LoadedWorld* world, V3 rectangle_radii, bool s
     time_checking = (t1 + t0)/2;
   }
   V3 new_position = position + velocity * t0;
-  printf("Moving from ");
-  printV3(position);
-  printf("\nWith velocity ");
-  printV3(velocity);
-  printf("\nEnded at ");
-  printV3(new_position);
-  printf("\nt0 is %.2f.\n", t0);
   // TODO: sliding for point in player
   if (slide && latest_collision.collides && latest_collision.player_in_block) {
     V3 remaining_velocity = velocity * (1-t0);
@@ -99,13 +92,6 @@ V3 move(V3 position, V3 velocity, LoadedWorld* world, V3 rectangle_radii, bool s
 
     V3 new_velocity = remaining_velocity - dot(remaining_velocity, collision_normal) * collision_normal;
     
-    printf("Moving: ");
-    printV3(velocity);
-    printf("\nCollision normal: ");
-    printV3(collision_normal);
-    printf("\nNew moving: ");
-    printV3(new_velocity);
-    printf("\n");
     return move(new_position, new_velocity, world, rectangle_radii, slide);
   }
   return new_position;

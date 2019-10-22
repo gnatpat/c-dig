@@ -40,7 +40,7 @@ bool initOpenGLAndCreateWindow(GLFWwindow** window) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
-  glClearColor(0.2f, 0.5f, 1.0f, 1.0f);
+  glClearColor(SKY_COLOUR.x, SKY_COLOUR.y, SKY_COLOUR.z, 1.0f);
 
   printf("%s\n", glGetString(GL_VERSION));
 

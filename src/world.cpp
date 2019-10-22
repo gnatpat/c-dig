@@ -104,15 +104,6 @@ MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, flo
   }
   BlockModel block_model = BLOCK_MODELS[getBlockAt(world, current_block).block_shape];
 
-  printf("At ");
-  printV3(from);
-  printf("\nBlock is ");
-  printV3i(current_block);
-  printf("\nMoving in direction ");
-  printV3(direction);
-  printf("\nWith %.6f distance left.\n", distance);
-  printf("Block has %d triangles.\n", block_model.triangle_count);
-
   MaybeRayTraceResult closest_result;
   closest_result.hit = false;
   for (int triangle_index = 0; triangle_index < block_model.triangle_count; triangle_index++) {
@@ -153,7 +144,6 @@ MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, flo
 }
 
 MaybeRayTraceResult blockRayTrace(LoadedWorld* world, V3 from, V3 direction, float distance) {
-  //printf("==RAY TRACE==\n");
   return blockRayTrace(world, from, direction, distance, toV3i(floor(from)));
 }
 
@@ -208,10 +198,14 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4 vie
     chunk = (Chunk*) removefromLinkedList(&loaded_world->render_state.dirty_chunks);
   }
   glUseProgram(terrain_shader);
-  GLuint transformLocation = glGetUniformLocation(terrain_shader, "view");
-  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&view);
-  transformLocation = glGetUniformLocation(terrain_shader, "projection");
-  glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&projection);
+  GLuint transform_location = glGetUniformLocation(terrain_shader, "view");
+  glUniformMatrix4fv(transform_location, 1, GL_TRUE, (float*)&view);
+
+  GLuint projection_location = glGetUniformLocation(terrain_shader, "projection");
+  glUniformMatrix4fv(projection_location, 1, GL_TRUE, (float*)&projection);
+  
+  GLuint sky_colour_location = glGetUniformLocation(terrain_shader, "skyColour");
+  glUniform3fv(sky_colour_location, 1, (float*)&SKY_COLOUR);
 
   for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
     for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
@@ -228,8 +222,8 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4 vie
           case OKAY:
             Matrix4x4 model = translate(v3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE));
             model *= translate(toV3(loaded_world->origin));
-            transformLocation = glGetUniformLocation(terrain_shader, "model");
-            glUniformMatrix4fv(transformLocation, 1, GL_TRUE, (float*)&model);
+            GLuint model_location = glGetUniformLocation(terrain_shader, "model");
+            glUniformMatrix4fv(model_location, 1, GL_TRUE, (float*)&model);
             ChunkRenderData* render_data = &c->render_data;
             glBindVertexArray(render_data->vao);
             glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
