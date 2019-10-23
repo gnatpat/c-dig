@@ -4,8 +4,13 @@ void loadFontDataOrDie(FontData* font_data, const char* filepath) {
     printf("Couldn't open %s.\n", filepath);
   }
 
-  // Skip first config line
-  fscanf(fp, "%*[^\n]\n");
+  fscanf(fp, "info face=\"%*[^\"]\" size=%*d bold=%*d italic=%*d charset=\"\" unicode=%*d stretchH=%*d smooth=%*d aa=%*d padding=%*d,%d,%*d,%d spacing=%*d,%*d\n",
+     //&font_data->padding_up,
+     &font_data->padding_right,
+     //&font_data->padding_down,
+     &font_data->padding_left); 
+  printf("%d %d\n", font_data->padding_right, font_data->padding_left);
+
   
   fscanf(fp, "common lineHeight=%d base=%d scaleW=%d scaleH=%d",
       &font_data->line_height,

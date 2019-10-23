@@ -28,13 +28,16 @@ Text createText(const char* string, Font* font) {
     const char* next_char = current_char + 1;
     int kerning = data->kerning[(int)*current_char][(int)*next_char];
 
-    V2 cursor_pos = v2(cursor_x - char_data.x_offset, -char_data.y_offset);
+    cursor_x -= data->padding_left;
+    V2 cursor_pos = v2(cursor_x, 0);
+    // Still not convinced this is right. I think this should be +x_offset, not negative.
+    V2 top_left_pos = cursor_pos + v2(-char_data.x_offset, data->line_base-char_data.y_offset);
     V2 top_left_uv = v2(char_data.x, char_data.y);
 
-    current_quad->vertices[0].position = (cursor_pos + v2(0, 0)) / ratio;
-    current_quad->vertices[1].position = (cursor_pos + v2(char_data.width, 0))/ratio;
-    current_quad->vertices[2].position = (cursor_pos + v2(0, -char_data.height))/ratio;
-    current_quad->vertices[3].position = (cursor_pos + v2(char_data.width, -char_data.height))/ratio;
+    current_quad->vertices[0].position = (top_left_pos + v2(0, 0)) / ratio;
+    current_quad->vertices[1].position = (top_left_pos + v2(char_data.width, 0))/ratio;
+    current_quad->vertices[2].position = (top_left_pos + v2(0, -char_data.height))/ratio;
+    current_quad->vertices[3].position = (top_left_pos + v2(char_data.width, -char_data.height))/ratio;
 
     current_quad->vertices[0].uv = (top_left_uv)/uv_ratio;
     current_quad->vertices[1].uv = (top_left_uv + v2(char_data.width, 0))/uv_ratio;
@@ -48,7 +51,7 @@ Text createText(const char* string, Font* font) {
     indices[i*6 + 4] = i * 4 + 3;
     indices[i*6 + 5] = i * 4 + 1;
 
-    cursor_x += char_data.x_advance + kerning;
+    cursor_x += char_data.x_advance + kerning - data->padding_right;
     current_char++;
     current_quad++;
     i++;

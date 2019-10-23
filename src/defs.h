@@ -361,6 +361,8 @@ struct FontData {
   int texture_height;
   FontCharData chars[128];
   int kerning[128][128];
+  int padding_left;
+  int padding_right;
 };
 
 struct Font {
