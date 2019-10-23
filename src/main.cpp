@@ -59,7 +59,7 @@ int main(void) {
   Font* font = (Font*) calloc(1, sizeof(Font));
   loadFontOrDie(font, "resources/font/lato.png", "resources/font/lato.fnt");
 
-  Text test_text = createText("The quick brown fox, jumps over the lazy dog.", font);
+  Text test_text = createText("The quick brown fox jumps over the lazy dog.", font);
 
   float t = 0.0;
 
@@ -133,7 +133,7 @@ int main(void) {
       if(debug_mode) {
         renderDebug(debug_data, debug_triangle_shader, view, projection);
       }
-      renderText(test_text, v2(-0.5, 0.0), 0.08, text_shader);
+      renderText(test_text, v2(-0.5, 0.0), 0.06, text_shader);
     }
 
     glfwSwapBuffers(window);

@@ -41,6 +41,15 @@ void loadFontDataOrDie(FontData* font_data, const char* filepath) {
       font_data->kerning[i][j] = 0;
     }
   }
+
+  int kerning_count;
+  fscanf(fp, "kernings count=%d\n", &kerning_count);
+  for(int i = 0; i < kerning_count; i++) {
+    int first, second, amount;
+    fscanf(fp, "kerning first=%d second=%d amount=%d\n", &first, &second, &amount);
+    font_data->kerning[first][second] = amount;
+  }
+
   fclose(fp);
 }
 
