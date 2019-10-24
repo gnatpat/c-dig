@@ -85,11 +85,11 @@ Text createText(const char* string, Font* font) {
 }
 
 void renderText(const Text text, const V2 pos, const float height, const GLuint shader) {
-  float aspect_ratio = ((float)SCREEN_HEIGHT)/SCREEN_WIDTH;
+  float aspect_ratio = ((float)SCREEN_WIDTH)/SCREEN_HEIGHT;
   float font_scale = height;
   Matrix4x4 model = identity();
   model *= translate(v3(pos.x, pos.y, 0.0));
-  model *= scale(v3(font_scale, font_scale / aspect_ratio, 1.0));
+  model *= scale(v3(font_scale/aspect_ratio, font_scale, 1.0));
   
   glUseProgram(shader);
   GLuint model_location = glGetUniformLocation(shader, "model");

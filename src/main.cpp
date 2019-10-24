@@ -57,12 +57,9 @@ int main(void) {
   initDebugData(debug_data);
 
   Font* font = (Font*) calloc(1, sizeof(Font));
-  loadFontOrDie(font, "resources/font/lato.png", "resources/font/lato.fnt");
-  Font* font2 = (Font*) calloc(1, sizeof(Font));
-  loadFontOrDie(font2, "resources/font/Suruma.png", "resources/font/Suruma.fnt");
+  loadFontOrDie(font, "resources/font/ubuntu.png", "resources/font/ubuntu.fnt");
 
-  Text test_text = createText("The quick brown fox jumps over the lazy dog.", font);
-  Text test_text2 = createText("The quick brown fox jumps over the lazy dog.", font2);
+  Text test_text = createText("Diganism v0.0.1", font);
 
   float t = 0.0;
 
@@ -103,6 +100,8 @@ int main(void) {
       }
 
       updatePlayer(&game_data->player, delta, &game_data->loaded_world);
+      shiftWorldBasedOnPositionIfNessecary(&game_data->loaded_world, game_data->player.position);
+
       updateInterface(game_data);
 
       if (debug_mode) {
@@ -136,8 +135,7 @@ int main(void) {
       if(debug_mode) {
         renderDebug(debug_data, debug_triangle_shader, view, projection);
       }
-      renderText(test_text, v2(-0.5, 0.0), 0.06, text_shader);
-      renderText(test_text2, v2(-0.5, 0.25), 0.06, text_shader);
+      renderText(test_text, v2(-1.0, 0.94), 0.06, text_shader);
     }
 
     glfwSwapBuffers(window);

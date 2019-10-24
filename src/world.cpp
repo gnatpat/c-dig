@@ -234,11 +234,9 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4 vie
   }
 }
 
-
-void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
+void shiftLoadedWorld(LoadedWorld* loaded_world, V3i diff) {
   // TODO: This function isn't quite done. The chunks next to the new ones still need to be re rendered, and there are
   // some threading issues when the map is shifted and chunks need to be double re rendered.
-  V3i diff = getDirectionVector(direction);
   loaded_world->origin += diff * CHUNK_SIZE;
   loaded_world->wrap_break += diff;
   loaded_world->wrap_break += LOADED_WORLD_SIZE;
@@ -254,7 +252,7 @@ void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
           y = i;
           z = j;
         } else {
-          x = (loaded_world->wrap_break.x + 15) % LOADED_WORLD_SIZE;
+          x = (loaded_world->wrap_break.x + LOADED_WORLD_SIZE - 1) % LOADED_WORLD_SIZE;
           y = i;
           z = j;
         }
@@ -264,7 +262,7 @@ void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
           x = i;
           z = j;
         } else {
-          y = (loaded_world->wrap_break.y + 15) % LOADED_WORLD_SIZE;
+          y = (loaded_world->wrap_break.y + LOADED_WORLD_SIZE - 1) % LOADED_WORLD_SIZE;
           x = i;
           z = j;
         }
@@ -274,7 +272,7 @@ void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
           x = i;
           y = j;
         } else {
-          z = (loaded_world->wrap_break.z + 15) % LOADED_WORLD_SIZE;
+          z = (loaded_world->wrap_break.z + LOADED_WORLD_SIZE - 1) % LOADED_WORLD_SIZE;
           x = i;
           y = j;
         }
@@ -285,6 +283,18 @@ void shiftLoadedWorld(LoadedWorld* loaded_world, Direction direction) {
   }
   signalCondition(&loaded_world->render_state.new_chunk_condition);
   unlockMutex(&loaded_world->render_state.new_chunk_lock);
+}
+
+void shiftWorldBasedOnPositionIfNessecary(LoadedWorld* loaded_world, V3 position) {
+  V3 chunks_from_centre = (position - toV3(loaded_world->origin))/CHUNK_SIZE - float(LOADED_WORLD_SIZE)/2.0;
+  V3i full_chunks_from_centre = toV3i(chunks_from_centre);
+  V3i direction_to_shift = full_chunks_from_centre/2;
+  if (len(direction_to_shift) > 0) {
+    printf("shifting by ");
+    printV3i(direction_to_shift);
+    printf("\n");
+    shiftLoadedWorld(loaded_world, direction_to_shift);
+  }
 }
 
 int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i from, V3i to) {

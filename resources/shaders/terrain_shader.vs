@@ -10,7 +10,7 @@ uniform mat4 projection;
 out vec3 col;
 out float visibility;
 
-const float fog_density = 0.02;
+const float fog_density = 0.01;
 const float fog_gradient = 5.0;
 
 void main()
