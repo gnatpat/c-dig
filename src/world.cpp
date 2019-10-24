@@ -154,6 +154,7 @@ void setUpNewChunk(LoadedWorld* world, V3i in_memory_pos) {
   c->render_data.state = NO_RENDER_DATA;
   if (c->render_data.vertices != NULL) {
     free(c->render_data.vertices);
+    c->render_data.vertices = NULL;
   }
   initChunk(c);
   addToLinkedList(&world->render_state.new_chunks, c);
