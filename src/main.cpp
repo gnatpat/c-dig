@@ -100,7 +100,8 @@ int main(void) {
       }
 
       updatePlayer(&game_data->player, delta, &game_data->loaded_world);
-      shiftWorldBasedOnPositionIfNessecary(&game_data->loaded_world, game_data->player.position);
+      // TODO: this is a bit buggy :(
+      //shiftWorldBasedOnPositionIfNessecary(&game_data->loaded_world, game_data->player.position);
 
       updateInterface(game_data);
 

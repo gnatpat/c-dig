@@ -683,6 +683,12 @@ inline V3i cross(V3i a, V3i b) {
             a.x * b.y - a.y * b.x);
 }
 
+inline V3i copysign(V3i magnitude, V3i sign) {
+  return v3i(copysignf(magnitude.x, sign.x),
+             copysignf(magnitude.y, sign.y),
+             copysignf(magnitude.z, sign.z));
+}
+
 /***********\
  * VECTOR2 *
 \***********/

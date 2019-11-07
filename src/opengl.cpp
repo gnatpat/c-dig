@@ -33,7 +33,7 @@ bool initOpenGLAndCreateWindow(GLFWwindow** window) {
   glfwSetCursorPosCallback(*window, cursorPositionCallback);
   glfwSetMouseButtonCallback(*window, mouseButtonCallback);
   glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  //glfwSwapInterval(0);
+  glfwSwapInterval(0);
   
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
