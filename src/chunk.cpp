@@ -186,3 +186,35 @@ void clearChunk(Chunk* c) {
     }
   }
 }
+
+void putMinecartTrackAt(Chunk* c, V3i v, V3i world_pos) {
+  LinkedList* l = c->minecart_tracks;
+  while(l != NULL) {
+    MinecartTrack* track = (MinecartTrack*) l->content;
+    if (track->in_chunk_pos == v) {
+      printf("Didn't add a track.");
+      return;
+    }
+    l = l->next;
+  }
+  MinecartTrack* new_track = (MinecartTrack*) calloc(1, sizeof(MinecartTrack));
+  initBasicRenderObject(&new_track->render_object, 2);
+  new_track->in_chunk_pos = v;
+  addToLinkedList(&(c->minecart_tracks), new_track);
+
+  printV3i(world_pos);
+
+  V3 corner1 = v3(world_pos.x, world_pos.y+0.1, world_pos.z);
+  V3 corner2 = v3(world_pos.x+1, world_pos.y+0.1, world_pos.z);
+  V3 corner3 = v3(world_pos.x, world_pos.y+0.1, world_pos.z+1);
+  V3 corner4 = v3(world_pos.x+1, world_pos.y+0.1, world_pos.z+1);
+  new_track->render_object.triangles[0].vertices[0] = corner1;
+  new_track->render_object.triangles[0].vertices[1] = corner4;
+  new_track->render_object.triangles[0].vertices[2] = corner2;
+  new_track->render_object.triangles[1].vertices[0] = corner1;
+  new_track->render_object.triangles[1].vertices[1] = corner3;
+  new_track->render_object.triangles[1].vertices[2] = corner4;
+  new_track->render_object.triangle_count = 2;
+  markDirty(&new_track->render_object);
+
+}

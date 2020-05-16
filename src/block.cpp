@@ -3,7 +3,7 @@ bool isBlockSolidAtPoint(BlockShape shape, V3 pos) {
   if (model.triangle_count == 0) {
     return false;
   }
-  // TODO: this is a more generic isPointInConcaveMesh
+  // TODO: this is a more generic isPointInConvexMesh
   for (int triangle_index = 0; triangle_index < model.triangle_count; triangle_index++) {
     if (dot(pos - model.mesh[triangle_index].vertices[0], model.mesh[triangle_index].normal) > 0.0) {
       return false;

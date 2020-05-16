@@ -192,7 +192,7 @@ void initWorld(LoadedWorld* world) {
 }
 
 
-void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4 view, Matrix4x4 projection) {
+void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, GLuint debugShader, Matrix4x4 view, Matrix4x4 projection) {
   Chunk* chunk = (Chunk*) removefromLinkedList(&loaded_world->render_state.dirty_chunks);
   while (chunk != NULL) {
     fillChunkRenderData(chunk, loaded_world);
@@ -229,6 +229,21 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, Matrix4x4 vie
             glBindVertexArray(render_data->vao);
             glDrawArrays(GL_TRIANGLES, 0, render_data->num_vertices);
             break;
+        }
+      }
+    }
+  }
+  // Looping through the chunks twice isn't nice, but it does keep all the
+  // different types of rendering together which could speed up some things.
+  for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
+    for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
+      for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
+        Chunk* c = getChunkRelativeToLoadedWorld(loaded_world, v3i(x, y, z));
+        LinkedList* l = c->minecart_tracks;
+        while(l != NULL) {
+          MinecartTrack* track = (MinecartTrack*) l->content;
+          render(&track->render_object, debugShader, view, projection, v3(1.0, 0.0, 0.0));
+          l = l->next;
         }
       }
     }
@@ -313,4 +328,11 @@ int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i from, V
   return count;
 }
 
+void putMinecartTrackAt(LoadedWorld* world, V3i pos) {
+  ChunkAndPosition chunk_and_position = absoluteValueToChunkAndPosition(world, pos);
+  if (!chunk_and_position.loaded) {
+    return;
+  }
+  putMinecartTrackAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos, pos);
+}
 

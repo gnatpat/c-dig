@@ -1,8 +1,8 @@
-void initBasicRenderObject(BasicRenderObject* basic_render_object, int size) {
+void initBasicRenderObject(BasicRenderObject* basic_render_object, int max_triangle_count) {
   glGenVertexArrays(1, &basic_render_object->vao);
   glGenBuffers(1, &basic_render_object->vbo);  
-  basic_render_object->triangles = (Triangle*) malloc(sizeof(Triangle) * size);
-  basic_render_object->vertices = (V3*) malloc(sizeof(V3) * size * 3);
+  basic_render_object->triangles = (Triangle*) malloc(sizeof(Triangle) * max_triangle_count);
+  basic_render_object->vertices = (V3*) malloc(sizeof(V3) * max_triangle_count * 3);
   basic_render_object->triangle_count = 0;
 }
 

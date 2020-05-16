@@ -656,6 +656,11 @@ inline V3i & operator%=(V3i &v, int a) {
   return v;
 }
 
+inline bool operator==(V3i v, V3i u) {
+  return v.x == u.x && v.y == u.y && v.z == u.z;
+}
+
+
 // scalar
 
 inline int inner(V3i v, V3i u) {

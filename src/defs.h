@@ -291,9 +291,15 @@ struct ChunkRenderData {
   GLuint vao;
 };
 
+struct MinecartTrack {
+  BasicRenderObject render_object;
+  V3i in_chunk_pos;
+};
+
 struct Chunk {
   Block blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   ChunkRenderData render_data;
+  LinkedList* minecart_tracks;
   V3i origin;
 };
 

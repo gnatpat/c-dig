@@ -115,7 +115,8 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
 
     player->focus = blockRayTrace(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
     if(player->focus.hit && leftMouseClicked()) {
-      putBlockAt(world, player->focus.block_position, { AIR });
+      //putBlockAt(world, player->focus.block_position, { AIR });
+      putMinecartTrackAt(world, player->focus.block_position + v3i(0, 1, 0));
     }
   }
 }
