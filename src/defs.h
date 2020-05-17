@@ -95,11 +95,25 @@ struct QuadraticSolutions {
   float max;
 };
 
+struct ObjectVertex {
+  V3 position;
+  V3 colour;
+  V3 normal;
+  float alpha;
+};
+
+struct ObjectTriangle {
+  V3 vertices[3];
+  V3 colour;
+  V3 normal;
+  float alpha;
+};
+
 struct BasicRenderObject {
   unsigned int vao;
   unsigned int vbo;
-  V3* vertices;
-  Triangle* triangles;
+  ObjectTriangle* triangles;
+  ObjectVertex* vertices;
   int triangle_count;
   bool dirty;
 };

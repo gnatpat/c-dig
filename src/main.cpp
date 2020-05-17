@@ -33,10 +33,10 @@ int main(void) {
 
   GLuint terrain_shader = compileShaderOrDie("resources/shaders/terrain_shader.vs",
                                              "resources/shaders/terrain_shader.fs");
-  //GLuint simple_obj_shader = compileShaderOrDie("resources/shaders/simple_obj.vs",
-  //                                              "resources/shaders/simple_obj.fs");
-  GLuint debug_triangle_shader = compileShaderOrDie("resources/shaders/debug_triangles.vs",
-                                                    "resources/shaders/debug_triangles.fs");
+  GLuint simple_obj_shader = compileShaderOrDie("resources/shaders/simple_obj.vs",
+                                                "resources/shaders/simple_obj.fs");
+  //GLuint debug_triangle_shader = compileShaderOrDie("resources/shaders/debug_triangles.vs",
+  //                                                  "resources/shaders/debug_triangles.fs");
   GLuint text_shader = compileShaderOrDie("resources/shaders/text_shader.vs",
                                           "resources/shaders/text_shader.fs");
 
@@ -132,11 +132,11 @@ int main(void) {
       float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
       Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
 
-      renderWorld(&game_data->loaded_world, terrain_shader, debug_triangle_shader, view, projection);
-      renderInterface(&game_data->interface, debug_triangle_shader, view, projection);
+      renderWorld(&game_data->loaded_world, terrain_shader, simple_obj_shader, view, projection);
+      renderInterface(&game_data->interface, simple_obj_shader, view, projection);
 
       if(debug_mode) {
-        renderDebug(debug_data, debug_triangle_shader, view, projection);
+        renderDebug(debug_data, simple_obj_shader, view, projection);
       }
       renderText(test_text, v2(-1.0, 0.94), 0.06, text_shader);
     }

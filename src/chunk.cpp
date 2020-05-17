@@ -211,9 +211,16 @@ void putMinecartTrackAt(Chunk* c, V3i v, V3i world_pos) {
   new_track->render_object.triangles[0].vertices[0] = corner1;
   new_track->render_object.triangles[0].vertices[1] = corner4;
   new_track->render_object.triangles[0].vertices[2] = corner2;
+  new_track->render_object.triangles[0].normal = v3(0, 1.0, 0);
+  new_track->render_object.triangles[0].colour = v3(0.5, 0.5, 0.5);
+  new_track->render_object.triangles[0].alpha = 1.0f;
+  new_track->render_object.triangles[0].vertices[2] = corner2;
   new_track->render_object.triangles[1].vertices[0] = corner1;
   new_track->render_object.triangles[1].vertices[1] = corner3;
   new_track->render_object.triangles[1].vertices[2] = corner4;
+  new_track->render_object.triangles[1].normal = v3(0, 1.0, 0);
+  new_track->render_object.triangles[1].colour = v3(0.5, 0.5, 0.5);
+  new_track->render_object.triangles[1].alpha = 1.0f;
   new_track->render_object.triangle_count = 2;
   markDirty(&new_track->render_object);
 

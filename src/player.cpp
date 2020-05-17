@@ -1,5 +1,5 @@
 void initPlayer(Player* player) {
-  player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
+  player->position = v3(LOADED_WORLD_SIZE*CHUNK_SIZE/2, LOADED_WORLD_SIZE*CHUNK_SIZE-2.0f, LOADED_WORLD_SIZE*CHUNK_SIZE/2);
   player->pitch = 0.0f;
   player->yaw = 0.0f;
   player->speed = v3(0, 0, 0);

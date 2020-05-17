@@ -3,10 +3,10 @@ uniform vec3 skyColour;
 
 out vec4 FragColor;
 
-in vec3 col;
+in vec4 col;
 in float visibility;
 
 void main()
 {
-    FragColor = vec4(mix(skyColour, col, visibility), 1.0);
+    FragColor = vec4(mix(skyColour, col.xyz, visibility), col.w);
 } 

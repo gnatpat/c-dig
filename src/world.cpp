@@ -242,7 +242,7 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, GLuint debugS
         LinkedList* l = c->minecart_tracks;
         while(l != NULL) {
           MinecartTrack* track = (MinecartTrack*) l->content;
-          render(&track->render_object, debugShader, view, projection, v3(1.0, 0.0, 0.0));
+          render(&track->render_object, debugShader, view, projection);
           l = l->next;
         }
       }
