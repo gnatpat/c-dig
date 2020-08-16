@@ -305,15 +305,24 @@ struct ChunkRenderData {
   GLuint vao;
 };
 
+enum MinecartTrackType {
+  STRAIGHT,
+  CURVED,
+
+  MINECART_TRACK_TYPE_COUNT
+};
+
 struct MinecartTrack {
   BasicRenderObject render_object;
   V3i in_chunk_pos;
+  Matrix4x4 model;
+  MinecartTrackType type;
 };
 
 struct Chunk {
   Block blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   ChunkRenderData render_data;
-  LinkedList* minecart_tracks;
+  LinkedList* minecart_tracks; // MinecartTrack
   V3i origin;
 };
 
@@ -351,10 +360,20 @@ struct Interface {
   BasicRenderObject centre_point;
 };
 
+struct MinecartTracks {
+  BasicRenderObject straight;
+  BasicRenderObject curve;
+};
+
+struct StaticData {
+  MinecartTracks minecart_tracks;
+};
+
 struct GameData {
   Player player;
   LoadedWorld loaded_world;
   Interface interface;
+  StaticData static_data;
 };
 
 struct BlockViewerData {

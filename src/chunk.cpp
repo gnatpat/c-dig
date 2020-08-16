@@ -198,30 +198,9 @@ void putMinecartTrackAt(Chunk* c, V3i v, V3i world_pos) {
     l = l->next;
   }
   MinecartTrack* new_track = (MinecartTrack*) calloc(1, sizeof(MinecartTrack));
-  initBasicRenderObject(&new_track->render_object, 2);
   new_track->in_chunk_pos = v;
+  new_track->model = translate(toV3(v));
+  new_track->type = STRAIGHT;
   addToLinkedList(&(c->minecart_tracks), new_track);
-
-  printV3i(world_pos);
-
-  V3 corner1 = v3(world_pos.x, world_pos.y+0.1, world_pos.z);
-  V3 corner2 = v3(world_pos.x+1, world_pos.y+0.1, world_pos.z);
-  V3 corner3 = v3(world_pos.x, world_pos.y+0.1, world_pos.z+1);
-  V3 corner4 = v3(world_pos.x+1, world_pos.y+0.1, world_pos.z+1);
-  new_track->render_object.triangles[0].vertices[0] = corner1;
-  new_track->render_object.triangles[0].vertices[1] = corner4;
-  new_track->render_object.triangles[0].vertices[2] = corner2;
-  new_track->render_object.triangles[0].normal = v3(0, 1.0, 0);
-  new_track->render_object.triangles[0].colour = v3(0.5, 0.5, 0.5);
-  new_track->render_object.triangles[0].alpha = 1.0f;
-  new_track->render_object.triangles[0].vertices[2] = corner2;
-  new_track->render_object.triangles[1].vertices[0] = corner1;
-  new_track->render_object.triangles[1].vertices[1] = corner3;
-  new_track->render_object.triangles[1].vertices[2] = corner4;
-  new_track->render_object.triangles[1].normal = v3(0, 1.0, 0);
-  new_track->render_object.triangles[1].colour = v3(0.5, 0.5, 0.5);
-  new_track->render_object.triangles[1].alpha = 1.0f;
-  new_track->render_object.triangle_count = 2;
-  markDirty(&new_track->render_object);
 
 }

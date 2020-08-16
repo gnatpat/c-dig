@@ -23,6 +23,7 @@
 #include "font.h"
 #include "input.h"
 #include "interface.h"
+#include "minecarts.h"
 #include "models.h"
 #include "move.h"
 #include "noise.h"

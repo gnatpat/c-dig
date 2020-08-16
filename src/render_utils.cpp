@@ -47,12 +47,15 @@ void fillRenderData(BasicRenderObject* basic_render_object) {
 }
 
 void render(BasicRenderObject* basic_render_object, GLuint shader, Matrix4x4 view, Matrix4x4 projection) {
+  render(basic_render_object, shader, identity(), view, projection);
+}
+
+void render(BasicRenderObject* basic_render_object, GLuint shader, Matrix4x4 model, Matrix4x4 view, Matrix4x4 projection) {
   if (basic_render_object->dirty) {
     fillRenderData(basic_render_object);
     basic_render_object->dirty = false;
   }
   glUseProgram(shader);
-  Matrix4x4 model = identity();
   GLuint location = glGetUniformLocation(shader, "model");
   glUniformMatrix4fv(location, 1, GL_TRUE, (float*)&model);
   location = glGetUniformLocation(shader, "view");

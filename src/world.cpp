@@ -192,7 +192,8 @@ void initWorld(LoadedWorld* world) {
 }
 
 
-void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, GLuint debugShader, Matrix4x4 view, Matrix4x4 projection) {
+void renderWorld(GameData* game_data, GLuint terrain_shader, GLuint debugShader, Matrix4x4 view, Matrix4x4 projection) {
+  LoadedWorld* loaded_world = &game_data->loaded_world;
   Chunk* chunk = (Chunk*) removefromLinkedList(&loaded_world->render_state.dirty_chunks);
   while (chunk != NULL) {
     fillChunkRenderData(chunk, loaded_world);
@@ -235,6 +236,7 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, GLuint debugS
   }
   // Looping through the chunks twice isn't nice, but it does keep all the
   // different types of rendering together which could speed up some things.
+  BasicRenderObject* curve = &game_data->static_data.minecart_tracks.curve;
   for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
     for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
       for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
@@ -242,7 +244,10 @@ void renderWorld(LoadedWorld* loaded_world, GLuint terrain_shader, GLuint debugS
         LinkedList* l = c->minecart_tracks;
         while(l != NULL) {
           MinecartTrack* track = (MinecartTrack*) l->content;
-          render(&track->render_object, debugShader, view, projection);
+          Matrix4x4 model = translate(v3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE));
+          model *= translate(toV3(loaded_world->origin));
+          model *= track->model;
+          render(curve, debugShader, model, view, projection);
           l = l->next;
         }
       }

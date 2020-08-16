@@ -11,6 +11,7 @@
 #include "font.cpp"
 #include "input.cpp"
 #include "interface.cpp"
+#include "minecarts.cpp"
 #include "models.cpp"
 #include "move.cpp"
 #include "noise.cpp"

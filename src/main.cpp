@@ -43,6 +43,7 @@ int main(void) {
   GameData* game_data = (GameData*) calloc(1, sizeof(GameData));
   initWorld(&game_data->loaded_world);
   initInterface(&game_data->interface);
+  initMinecartTrackModels(&game_data->static_data.minecart_tracks);
 
   pthread_t chunk_render_thread;
   pthread_create(&chunk_render_thread, NULL, newChunkRenderMain, game_data);
@@ -132,7 +133,7 @@ int main(void) {
       float ratio = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
       Matrix4x4 projection = perspective_projection(0.1, 1000.0, 45.0, ratio);
 
-      renderWorld(&game_data->loaded_world, terrain_shader, simple_obj_shader, view, projection);
+      renderWorld(game_data, terrain_shader, simple_obj_shader, view, projection);
       renderInterface(&game_data->interface, simple_obj_shader, view, projection);
 
       if(debug_mode) {
