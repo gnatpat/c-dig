@@ -1,4 +1,4 @@
-const int EXTRA_INSIDE_POINTS = 10;
+const int EXTRA_INSIDE_POINTS = 5;
 
 void initMinecartTrackModels(MinecartTracks* trackModels) {
   BasicRenderObject* straight = &trackModels->straight;

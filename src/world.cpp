@@ -237,6 +237,7 @@ void renderWorld(GameData* game_data, GLuint terrain_shader, GLuint debugShader,
   // Looping through the chunks twice isn't nice, but it does keep all the
   // different types of rendering together which could speed up some things.
   BasicRenderObject* curve = &game_data->static_data.minecart_tracks.curve;
+  BasicRenderObject* straight = &game_data->static_data.minecart_tracks.straight;
   for(int x = 0; x < LOADED_WORLD_SIZE; x++) {
     for(int y = 0; y < LOADED_WORLD_SIZE; y++) {
       for(int z = 0; z < LOADED_WORLD_SIZE; z++) {
@@ -247,7 +248,44 @@ void renderWorld(GameData* game_data, GLuint terrain_shader, GLuint debugShader,
           Matrix4x4 model = translate(v3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE));
           model *= translate(toV3(loaded_world->origin));
           model *= track->model;
-          render(curve, debugShader, model, view, projection);
+          BasicRenderObject* object;
+          int quarter_turns = 0;
+          if (!track->pos_z && !track->neg_z && !track->pos_x && !track->neg_x) {
+            object = straight;
+          } else if (track->pos_z && !track->neg_z && !track->pos_x && !track->neg_x) {
+            object = straight;
+          } else if (!track->pos_z && track->neg_z && !track->pos_x && !track->neg_x) {
+            object = straight;
+          } else if (!track->pos_z && !track->neg_z && track->pos_x && !track->neg_x) {
+            object = straight;
+            quarter_turns = 1;
+          } else if (!track->pos_z && !track->neg_z && !track->pos_x && track->neg_x) {
+            object = straight;
+            quarter_turns = 1;
+          } else if (track->pos_z && track->neg_z && !track->pos_x && !track->neg_x) {
+            object = straight;
+          } else if (!track->pos_z && !track->neg_z && track->pos_x && track->neg_x) {
+            object = straight;
+            quarter_turns = 1;
+          } else if (track->pos_z && !track->neg_z && track->pos_x && !track->neg_x) {
+            object = curve;
+            quarter_turns = 3;
+          } else if (track->pos_z && !track->neg_z && !track->pos_x && track->neg_x) {
+            object = curve;
+            quarter_turns = 2;
+          } else if (!track->pos_z && track->neg_z && track->pos_x && !track->neg_x) {
+            object = curve;
+            quarter_turns = 0;
+          } else if (!track->pos_z && track->neg_z && !track->pos_x && track->neg_x) {
+            object = curve;
+            quarter_turns = 1;
+          } else {
+            object = straight;
+          }
+          model *= translate(v3(0.5, 0.5, 0.5));
+          model *= rotate(v3(0, M_PI/2 * quarter_turns, 0));
+          model *= translate(v3(-0.5, -0.5, -0.5));
+          render(object, debugShader, model, view, projection);
           l = l->next;
         }
       }
@@ -338,6 +376,36 @@ void putMinecartTrackAt(LoadedWorld* world, V3i pos) {
   if (!chunk_and_position.loaded) {
     return;
   }
-  putMinecartTrackAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos, pos);
+  MinecartTrack* new_track = putMinecartTrackAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos, pos);
+
+  MinecartTrack* neighbour;
+  neighbour = getMinecartTrackAt(world, pos + v3i(0, 0, 1));
+  if (neighbour != NULL) {
+    neighbour->neg_z = true;
+    new_track->pos_z = true;
+  }
+  neighbour = getMinecartTrackAt(world, pos + v3i(0, 0, -1));
+  if (neighbour != NULL) {
+    neighbour->pos_z = true;
+    new_track->neg_z = true;
+  }
+  neighbour = getMinecartTrackAt(world, pos + v3i(1, 0, 0));
+  if (neighbour != NULL) {
+    neighbour->pos_x = true;
+    new_track->neg_x = true;
+  }
+  neighbour = getMinecartTrackAt(world, pos + v3i(-1, 0, 0));
+  if (neighbour != NULL) {
+    neighbour->neg_x = true;
+    new_track->pos_x = true;
+  }
+}
+
+MinecartTrack* getMinecartTrackAt(LoadedWorld* world, V3i pos) {
+  ChunkAndPosition chunk_and_position = absoluteValueToChunkAndPosition(world, pos);
+  if (!chunk_and_position.loaded) {
+    return NULL;
+  }
+  return getMinecartTrackAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos, pos);
 }
 

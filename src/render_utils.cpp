@@ -67,3 +67,38 @@ void render(BasicRenderObject* basic_render_object, GLuint shader, Matrix4x4 mod
   glDrawArrays(GL_TRIANGLES, 0, basic_render_object->triangle_count*3);
 }
 
+void make3dTriangle(ObjectTriangle* buffer, V3 direction, V3 perp_dir, V3 colour, float offset_fraction) {
+  V3 offset = direction * offset_fraction;
+  V3 tip = direction + offset;
+  V3 base_a = perp_dir;
+  V3 base_b = cross(direction, perp_dir);
+
+  buffer->vertices[0] = tip;
+  buffer->vertices[1] = base_a + offset;
+  buffer->vertices[2] = -base_a + offset;
+  buffer->colour = colour;
+  buffer->alpha = 1.0f;
+  buffer++;
+
+  buffer->vertices[0] = tip;
+  buffer->vertices[1] = -base_a + offset;
+  buffer->vertices[2] = base_a + offset;
+  buffer->colour = colour;
+  buffer->alpha = 1.0f;
+  buffer++;
+
+  buffer->vertices[0] = tip;
+  buffer->vertices[1] = -base_b + offset;
+  buffer->vertices[2] = base_b + offset;
+  buffer->colour = colour;
+  buffer->alpha = 1.0f;
+  buffer++;
+
+  buffer->vertices[0] = tip;
+  buffer->vertices[1] = base_b + offset;
+  buffer->vertices[2] = -base_b + offset;
+  buffer->colour = colour;
+  buffer->alpha = 1.0f;
+  buffer++;
+}
+

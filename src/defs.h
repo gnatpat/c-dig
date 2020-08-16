@@ -317,6 +317,10 @@ struct MinecartTrack {
   V3i in_chunk_pos;
   Matrix4x4 model;
   MinecartTrackType type;
+  bool pos_z;
+  bool neg_z;
+  bool pos_x;
+  bool neg_x;
 };
 
 struct Chunk {
@@ -358,6 +362,9 @@ struct Interface {
   BasicRenderObject block_focus;
   BasicRenderObject block_focus_face;
   BasicRenderObject centre_point;
+  BasicRenderObject direction_dongle;
+  float pitch;
+  float yaw;
 };
 
 struct MinecartTracks {

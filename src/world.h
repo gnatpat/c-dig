@@ -9,6 +9,7 @@ int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i from, V
 void markChunkAsDirty(LoadedWorld* world, Chunk* c);
 void putBlockAt(LoadedWorld* world, V3i pos, Block block);
 void putMinecartTrackAt(LoadedWorld* world, V3i pos);
+MinecartTrack* getMinecartTrackAt(LoadedWorld* world, V3i pos);
 
 inline Chunk* getChunkRelativeToLoadedWorld(LoadedWorld* world, V3i pos) {
   pos += world->wrap_break;
