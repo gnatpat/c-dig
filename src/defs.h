@@ -174,6 +174,7 @@ enum InputKey {
   SWITCH_TO_FLYING_MODE_KEY,
   SWITCH_TO_DEBUG_MODE_KEY,
   QUIT_KEY,
+  MINECART_KEY,
 
   INPUT_KEY_COUNT
 };
@@ -305,6 +306,12 @@ struct ChunkRenderData {
   GLuint vao;
 };
 
+struct Minecart {
+  V3i in_chunk_pos;
+  //float 
+  V3 velocity;
+};
+
 enum MinecartTrackType {
   STRAIGHT,
   CURVED,
@@ -327,6 +334,7 @@ struct Chunk {
   Block blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   ChunkRenderData render_data;
   LinkedList* minecart_tracks; // MinecartTrack
+  LinkedList* minecarts; // Minecart
   V3i origin;
 };
 

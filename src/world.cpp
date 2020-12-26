@@ -371,6 +371,15 @@ int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i from, V
   return count;
 }
 
+void putMinecartAt(LoadedWorld* world, V3i pos) {
+  ChunkAndPosition chunk_and_position = absoluteValueToChunkAndPosition(world, pos);
+  if (!chunk_and_position.loaded) {
+    return;
+  }
+  putMinecartAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos);
+}
+
+
 void putMinecartTrackAt(LoadedWorld* world, V3i pos) {
   ChunkAndPosition chunk_and_position = absoluteValueToChunkAndPosition(world, pos);
   if (!chunk_and_position.loaded) {

@@ -45,6 +45,7 @@ void initInputKeyMappings() {
   key_mappings[SWITCH_TO_FLYING_MODE_KEY] = GLFW_KEY_F;
   key_mappings[SWITCH_TO_DEBUG_MODE_KEY] = GLFW_KEY_TAB;
   key_mappings[QUIT_KEY] = GLFW_KEY_Q;
+  key_mappings[MINECART_KEY] = GLFW_KEY_M;
 }
 
 void initInput() {

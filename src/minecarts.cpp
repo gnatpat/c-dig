@@ -35,8 +35,6 @@ void initMinecartTrackModels(MinecartTracks* trackModels) {
     outside_angle = (M_PI / 2) * (i+1) / (EXTRA_INSIDE_POINTS + 2);
     V3 new_outside = v3(cos(outside_angle), 0, sin(outside_angle)) * 0.75;
     new_outside.y = 0.01;
-    printV3(new_outside);
-    printf("\nOutside angle: %.2f\n", outside_angle);
     curve->triangles[i*2].vertices[0] = outside;
     curve->triangles[i*2].vertices[1] = inside;
     curve->triangles[i*2].vertices[2] = new_outside;
@@ -48,8 +46,6 @@ void initMinecartTrackModels(MinecartTracks* trackModels) {
     inside_angle = (M_PI / 2) * (i+1) / (EXTRA_INSIDE_POINTS + 1);
     V3 new_inside = v3(cos(inside_angle), 0, sin(inside_angle)) * 0.25;
     new_inside.y = 0.01;
-    printV3(new_inside);
-    printf("\nInside angle: %.2f\n", inside_angle);
     curve->triangles[i*2 + 1].vertices[0] = inside;
     curve->triangles[i*2 + 1].vertices[1] = new_inside;
     curve->triangles[i*2 + 1].vertices[2] = outside;

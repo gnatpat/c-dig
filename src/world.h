@@ -8,6 +8,7 @@ bool isPointSolid(LoadedWorld* world, V3 pos);
 int getMeshAroundPosition(Triangle* mesh_buffer, LoadedWorld* world, V3i from, V3i to);
 void markChunkAsDirty(LoadedWorld* world, Chunk* c);
 void putBlockAt(LoadedWorld* world, V3i pos, Block block);
+void putMinecartAt(LoadedWorld* world, V3i pos);
 void putMinecartTrackAt(LoadedWorld* world, V3i pos);
 MinecartTrack* getMinecartTrackAt(LoadedWorld* world, V3i pos);
 

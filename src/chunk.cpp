@@ -187,6 +187,17 @@ void clearChunk(Chunk* c) {
   }
 }
 
+Minecart* putMinecartAt(Chunk* c, V3i v) {
+  LinkedList* l = c->minecarts;
+  Minecart* new_cart = (Minecart*) calloc(1, sizeof(Minecart));
+  addToLinkedList(&l, new_cart);
+
+  new_cart->in_chunk_pos = v;
+
+  return new_cart;
+}
+
+
 MinecartTrack* putMinecartTrackAt(Chunk* c, V3i v, V3i world_pos) {
   LinkedList* l = c->minecart_tracks;
   while(l != NULL) {
@@ -212,7 +223,6 @@ MinecartTrack* getMinecartTrackAt(Chunk* c, V3i v, V3i world_pos) {
   while(l != NULL) {
     MinecartTrack* track = (MinecartTrack*) l->content;
     if (track->in_chunk_pos == v) {
-      printf("Didn't add a track.");
       return track;
     }
     l = l->next;

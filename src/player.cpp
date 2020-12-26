@@ -115,8 +115,16 @@ void updatePlayer(Player* player, float dt, LoadedWorld* world) {
 
     player->focus = blockRayTrace(world, player->position + v3(0, PLAYER_HEIGHT/2, 0), player->facing, 5.0);
     if(player->focus.hit && leftMouseClicked()) {
-      //putBlockAt(world, player->focus.block_position, { AIR });
-      putMinecartTrackAt(world, player->focus.block_position + v3i(0, 1, 0));
+      MinecartTrack* track = getMinecartTrackAt(world, player->focus.block_position + v3i(0, 1, 0));
+      printf("%p %d\n", (void*)track, isKeyDown(MINECART_KEY));
+      printf("Hello\n");
+      if (track != NULL && isKeyDown(MINECART_KEY)) {
+        printf("Putting minecart\n");
+        putMinecartAt(world, player->focus.block_position + v3i(0, 1, 0));
+      } else {
+        printf("Putting track\n");
+        putMinecartTrackAt(world, player->focus.block_position + v3i(0, 1, 0));
+      }
     }
   }
 }

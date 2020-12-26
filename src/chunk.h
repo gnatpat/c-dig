@@ -3,6 +3,7 @@ void initSphereChunk(Chunk* c);
 void initChunk(Chunk* c);
 void clearChunk(Chunk* c);
 void fillChunkVao(Chunk* chunk);
+Minecart* putMinecartAt(Chunk* c, V3i v);
 MinecartTrack* putMinecartTrackAt(Chunk* c, V3i v, V3i world_pos);
 MinecartTrack* getMinecartTrackAt(Chunk* c, V3i v, V3i world_pos);
 
