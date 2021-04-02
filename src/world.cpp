@@ -247,43 +247,10 @@ void renderWorld(GameData* game_data, GLuint terrain_shader, GLuint debugShader,
           MinecartTrack* track = (MinecartTrack*) l->content;
           Matrix4x4 model = translate(v3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE));
           model *= translate(toV3(loaded_world->origin));
-          model *= track->model;
-          BasicRenderObject* object;
-          int quarter_turns = 0;
-          if (!track->pos_z && !track->neg_z && !track->pos_x && !track->neg_x) {
-            object = straight;
-          } else if (track->pos_z && !track->neg_z && !track->pos_x && !track->neg_x) {
-            object = straight;
-          } else if (!track->pos_z && track->neg_z && !track->pos_x && !track->neg_x) {
-            object = straight;
-          } else if (!track->pos_z && !track->neg_z && track->pos_x && !track->neg_x) {
-            object = straight;
-            quarter_turns = 1;
-          } else if (!track->pos_z && !track->neg_z && !track->pos_x && track->neg_x) {
-            object = straight;
-            quarter_turns = 1;
-          } else if (track->pos_z && track->neg_z && !track->pos_x && !track->neg_x) {
-            object = straight;
-          } else if (!track->pos_z && !track->neg_z && track->pos_x && track->neg_x) {
-            object = straight;
-            quarter_turns = 1;
-          } else if (track->pos_z && !track->neg_z && track->pos_x && !track->neg_x) {
-            object = curve;
-            quarter_turns = 3;
-          } else if (track->pos_z && !track->neg_z && !track->pos_x && track->neg_x) {
-            object = curve;
-            quarter_turns = 2;
-          } else if (!track->pos_z && track->neg_z && track->pos_x && !track->neg_x) {
-            object = curve;
-            quarter_turns = 0;
-          } else if (!track->pos_z && track->neg_z && !track->pos_x && track->neg_x) {
-            object = curve;
-            quarter_turns = 1;
-          } else {
-            object = straight;
-          }
+          model *= translate(toV3(track->in_chunk_pos));
+          BasicRenderObject* object = track->type == STRAIGHT ? straight : curve;
           model *= translate(v3(0.5, 0.5, 0.5));
-          model *= rotate(v3(0, M_PI/2 * quarter_turns, 0));
+          model *= rotate(v3(0, M_PI/2 * track->quarter_turns, 0));
           model *= translate(v3(-0.5, -0.5, -0.5));
           render(object, debugShader, model, view, projection);
           l = l->next;
@@ -379,6 +346,50 @@ void putMinecartAt(LoadedWorld* world, V3i pos) {
   putMinecartAt(chunk_and_position.chunk, chunk_and_position.in_chunk_pos);
 }
 
+void reOrientMinecartTrack(MinecartTrack* track) {
+  int quarter_turns;
+  MinecartTrackType type;
+  if (!track->pos_z && !track->neg_z && !track->pos_x && !track->neg_x) {
+    type = STRAIGHT;
+    quarter_turns = 0;
+  } else if (track->pos_z && !track->neg_z && !track->pos_x && !track->neg_x) {
+    type = STRAIGHT;
+    quarter_turns = 0;
+  } else if (!track->pos_z && track->neg_z && !track->pos_x && !track->neg_x) {
+    type = STRAIGHT;
+    quarter_turns = 0;
+  } else if (!track->pos_z && !track->neg_z && track->pos_x && !track->neg_x) {
+    type = STRAIGHT;
+    quarter_turns = 1;
+  } else if (!track->pos_z && !track->neg_z && !track->pos_x && track->neg_x) {
+    type = STRAIGHT;
+    quarter_turns = 1;
+  } else if (track->pos_z && track->neg_z && !track->pos_x && !track->neg_x) {
+    type = STRAIGHT;
+    quarter_turns = 0;
+  } else if (!track->pos_z && !track->neg_z && track->pos_x && track->neg_x) {
+    type = STRAIGHT;
+    quarter_turns = 1;
+  } else if (track->pos_z && !track->neg_z && track->pos_x && !track->neg_x) {
+    type = CURVED;
+    quarter_turns = 3;
+  } else if (track->pos_z && !track->neg_z && !track->pos_x && track->neg_x) {
+    type = CURVED;
+    quarter_turns = 2;
+  } else if (!track->pos_z && track->neg_z && track->pos_x && !track->neg_x) {
+    type = CURVED;
+    quarter_turns = 0;
+  } else if (!track->pos_z && track->neg_z && !track->pos_x && track->neg_x) {
+    type = CURVED;
+    quarter_turns = 1;
+  } else {
+    type = STRAIGHT;
+    quarter_turns = 0;
+  }
+  track->quarter_turns = quarter_turns;
+  track->type = type;
+}
+
 
 void putMinecartTrackAt(LoadedWorld* world, V3i pos) {
   ChunkAndPosition chunk_and_position = absoluteValueToChunkAndPosition(world, pos);
@@ -392,22 +403,27 @@ void putMinecartTrackAt(LoadedWorld* world, V3i pos) {
   if (neighbour != NULL) {
     neighbour->neg_z = true;
     new_track->pos_z = true;
+    reOrientMinecartTrack(neighbour);
   }
   neighbour = getMinecartTrackAt(world, pos + v3i(0, 0, -1));
   if (neighbour != NULL) {
     neighbour->pos_z = true;
     new_track->neg_z = true;
+    reOrientMinecartTrack(neighbour);
   }
   neighbour = getMinecartTrackAt(world, pos + v3i(1, 0, 0));
   if (neighbour != NULL) {
     neighbour->pos_x = true;
     new_track->neg_x = true;
+    reOrientMinecartTrack(neighbour);
   }
   neighbour = getMinecartTrackAt(world, pos + v3i(-1, 0, 0));
   if (neighbour != NULL) {
     neighbour->neg_x = true;
     new_track->pos_x = true;
+    reOrientMinecartTrack(neighbour);
   }
+  reOrientMinecartTrack(new_track);
 }
 
 MinecartTrack* getMinecartTrackAt(LoadedWorld* world, V3i pos) {

@@ -212,7 +212,6 @@ MinecartTrack* putMinecartTrackAt(Chunk* c, V3i v, V3i world_pos) {
   addToLinkedList(&(c->minecart_tracks), new_track);
 
   new_track->in_chunk_pos = v;
-  new_track->model = translate(toV3(v));
   new_track->type = STRAIGHT;
 
   return new_track;

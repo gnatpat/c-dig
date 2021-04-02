@@ -322,8 +322,8 @@ enum MinecartTrackType {
 struct MinecartTrack {
   BasicRenderObject render_object;
   V3i in_chunk_pos;
-  Matrix4x4 model;
   MinecartTrackType type;
+  int quarter_turns;
   bool pos_z;
   bool neg_z;
   bool pos_x;
